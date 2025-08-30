@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
       links: document.getElementById('extract-links').checked,
       meta: document.getElementById('extract-meta').checked,
       styles: document.getElementById('extract-styles').checked,
-      scripts: document.getElementById('extract-scripts').checked
+      scripts: document.getElementById('extract-scripts').checked,
+      article: document.getElementById('extract-article').checked
     };
     
     // 如果没有选中任何选项，提示用户
@@ -218,6 +219,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }));
     }
     
+    if (options.article) {
+      // 查找article标签并提取内容
+      const articleElements = document.querySelectorAll('article');
+      if (articleElements.length > 0) {
+        // 如果找到article标签，提取第一个article标签的innerText
+        data.article = articleElements[0].innerText;
+      } else {
+        // 如果没有找到article标签，设置为null
+        data.article = null;
+      }
+    }
+    
     data.extractionTime = performance.now() - startTime;
     data.extractedAt = new Date().toISOString();
     
@@ -275,6 +288,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (data.wordCount) {
       html += `<div><strong>字数:</strong> ${data.wordCount}</div>`;
+    }
+    
+    if (data.article !== undefined) {
+      if (data.article) {
+        // 如果article内容存在，显示截断版本
+        const truncatedArticle = data.article.length > 100 ?
+          data.article.substring(0, 100) + '...' :
+          data.article;
+        html += `<div><strong>文章内容:</strong> <span title="${data.article.replace(/"/g, '"')}">${truncatedArticle}</span></div>`;
+      } else {
+        // 如果article为null，显示未找到
+        html += `<div><strong>文章内容:</strong> 未找到article标签</div>`;
+      }
     }
     
     if (data.extractionTime) {
@@ -503,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
       wordCount: data.wordCount,
       imagesCount: data.images ? data.images.length : 0,
       linksCount: data.links ? data.links.length : 0,
+      article: data.article, // 添加article字段
       extractedAt: data.extractedAt
     };
     
