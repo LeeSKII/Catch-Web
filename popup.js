@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (options.text) {
       data.text = document.body.innerText;
-      data.wordCount = data.text.split(/\s+/).filter(word => word.length > 0).length;
+      data.wordCount = data.text.length;
     }
     
     if (options.images) {
