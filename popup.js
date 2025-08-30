@@ -104,10 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 提取数据函数
   function extractData() {
-    // 显示进度条
-    const progressBar = document.getElementById('extract-progress');
-    progressBar.style.width = '0%';
-    
     // 获取选中的提取选项
     const options = {
       html: document.getElementById('extract-html').checked,
@@ -125,9 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    // 更新进度
-    progressBar.style.width = '30%';
-    
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       chrome.scripting.executeScript({
         target: {tabId: tabs[0].id},
@@ -135,8 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
         args: [options]
       }, (results) => {
         if (results && results[0]) {
-          progressBar.style.width = '70%';
-          
           extractedData = results[0].result;
           
           // 显示统计信息
@@ -148,15 +139,11 @@ document.addEventListener('DOMContentLoaded', function() {
           // 切换到结果标签页
           switchTab('results');
           
-          // 完成进度
-          progressBar.style.width = '100%';
-          
           // 保存提取的数据
           saveExtractedData(extractedData);
         } else if (chrome.runtime.lastError) {
           console.error('提取错误:', chrome.runtime.lastError);
           alert('提取失败: ' + chrome.runtime.lastError.message);
-          progressBar.style.width = '0%';
         }
       });
     });
