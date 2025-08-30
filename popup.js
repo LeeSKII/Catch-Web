@@ -192,6 +192,14 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       data.title = document.title;
       data.url = window.location.href;
+      
+      // 提取主域名
+      try {
+        const urlObj = new URL(window.location.href);
+        data.host = urlObj.hostname.replace(/^www\./, '');
+      } catch (e) {
+        data.host = 'invalid-host';
+      }
     }
     
     if (options.styles) {
@@ -248,6 +256,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (data.url) {
       const truncatedUrl = data.url.length > 60 ? data.url.substring(0, 60) + '...' : data.url;
       html += `<div><strong>URL:</strong> <span title="${data.url}">${truncatedUrl}</span></div>`;
+    }
+    
+    if (data.host) {
+      html += `<div><strong>主域名:</strong> ${data.host}</div>`;
     }
     
     if (data.meta) {
