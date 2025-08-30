@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // 提取按钮事件
   document.getElementById('extract-btn').addEventListener('click', extractData);
   
+  // 保存提取设置按钮事件
+  document.getElementById('save-extract-settings-btn').addEventListener('click', saveSettings);
+  
   // 复制全部按钮事件
   document.getElementById('copy-all-btn').addEventListener('click', copyAllData);
   
@@ -74,6 +77,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('dark-mode').checked = localStorage.getItem('darkMode') === 'true';
     document.getElementById('data-retention').value = localStorage.getItem('dataRetention') || '7';
     
+    // 加载提取选项设置
+    document.getElementById('extract-html').checked = localStorage.getItem('extractHtml') !== 'false';
+    document.getElementById('extract-text').checked = localStorage.getItem('extractText') !== 'false';
+    document.getElementById('extract-images').checked = localStorage.getItem('extractImages') !== 'false';
+    document.getElementById('extract-links').checked = localStorage.getItem('extractLinks') !== 'false';
+    document.getElementById('extract-meta').checked = localStorage.getItem('extractMeta') !== 'false';
+    document.getElementById('extract-styles').checked = localStorage.getItem('extractStyles') === 'true';
+    document.getElementById('extract-scripts').checked = localStorage.getItem('extractScripts') === 'true';
+    document.getElementById('extract-article').checked = localStorage.getItem('extractArticle') !== 'false';
+    
     // 应用暗色模式
     if (localStorage.getItem('darkMode') === 'true') {
       document.documentElement.style.setProperty('--light-color', '#212529');
@@ -87,6 +100,16 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('showPreviews', document.getElementById('show-previews').checked);
     localStorage.setItem('darkMode', document.getElementById('dark-mode').checked);
     localStorage.setItem('dataRetention', document.getElementById('data-retention').value);
+    
+    // 保存提取选项设置
+    localStorage.setItem('extractHtml', document.getElementById('extract-html').checked);
+    localStorage.setItem('extractText', document.getElementById('extract-text').checked);
+    localStorage.setItem('extractImages', document.getElementById('extract-images').checked);
+    localStorage.setItem('extractLinks', document.getElementById('extract-links').checked);
+    localStorage.setItem('extractMeta', document.getElementById('extract-meta').checked);
+    localStorage.setItem('extractStyles', document.getElementById('extract-styles').checked);
+    localStorage.setItem('extractScripts', document.getElementById('extract-scripts').checked);
+    localStorage.setItem('extractArticle', document.getElementById('extract-article').checked);
     
     alert('设置已保存！');
   }
