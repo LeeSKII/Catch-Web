@@ -446,11 +446,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const blob = new Blob([JSON.stringify(extractedData, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
+    
+    // 获取标题和URL来构建文件名
+    let title = extractedData.title || 'untitled';
+    let urlPart = extractedData.url || 'no-url';
+    
+    // 清理标题，移除不适合文件名的字符
+    title = title.replace(/[\\/:*?"<>|]/g, '-').substring(0, 50);
+    
+    // 从URL中提取域名部分
+    try {
+      const urlObj = new URL(urlPart);
+      urlPart = urlObj.hostname.replace(/^www\./, '');
+    } catch (e) {
+      urlPart = 'invalid-url';
+    }
+    
     const date = new Date().toISOString().slice(0, 10);
+    const filename = `${title}-${urlPart}-${date}.json`;
     
     chrome.downloads.download({
       url: url,
-      filename: `page-data-${date}.json`,
+      filename: filename,
       saveAs: true
     });
   }
