@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3a0ca3;
+      --accent-color: #7209b7;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --success-color: #4cc9f0;
+      --warning-color: #f72585;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+    
+    body {
+      width: 500px;
+      padding: 0;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--light-color);
+      color: var(--dark-color);
+    }
+    
+    .header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 15px;
+      text-align: center;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .header h1 .icon {
+      font-size: 20px;
+    }
+    
+    .container {
+      padding: 15px;
+      min-width: 500px;
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 15px;
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      border: none;
+      font-weight: 600;
+    }
+    
+    .tab.active {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .section {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--secondary-color);
+    }
+    
+    .section-content {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      padding: 10px;
+      border-radius: var(--border-radius);
+      font-size: 13px;
+      background: #f9f9f9;
+    }
+    
+    .btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: var(--accent-color);
+      color: white;
+    }
+    
+    .btn-success {
+      background: var(--success-color);
+      color: white;
+    }
+    
+    .btn-warning {
+      background: var(--warning-color);
+      color: white;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .filter-box {
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .filter-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 13px;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 15px 0;
+      text-align: center;
+    }
+    
+    .stat-item {
+      flex: 1;
+      padding: 10px;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .progress-bar {
+      height: 4px;
+      background: #eee;
+      border-radius: 2px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-color);
+      width: 0%;
+    }
+    
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .image-item {
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .image-item img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+    }
+    
+    .image-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px;
+      font-size: 10px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .image-item:hover .image-info {
+      opacity: 1;
+    }
+    
+    .settings-panel {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-top: 15px;
+    }
+    
+    .setting-item {
+      margin-bottom: 10px;
+    }
+    
+    .setting-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: var(--primary-color);
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px;
+      border-top: 1px solid #eee;
+      background: white;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 500px) {
+      body {
+        width: 100%;
+      }
+      
+      .image-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span class="icon">📋</span> 网页信息提取器</h1>
+  </div>
+  
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" data-tab="extract">提取</button>
+      <button class="tab" data-tab="results">结果</button>
+      <button class="tab" data-tab="settings">设置</button>
+    </div>
+    
+    <div id="extract-tab" class="tab-content active">
+      <div class="section">
+        <div class="section-title">
+          <span>提取选项</span>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-html" checked> HTML内容
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-text" checked> 文本内容
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-images" checked> 图片信息
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-links" checked> 链接信息
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-meta" checked> 元数据
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-styles"> CSS样式
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="extract-scripts"> 脚本信息
+          </label>
+        </div>
+        
+        <button id="extract-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          <span class="icon">🔍</span> 开始提取
+        </button>
+        
+        <div class="progress-bar">
+          <div class="progress-fill" id="extract-progress"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="results-tab" class="tab-content">
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-value" id="images-count">0</div>
+          <div class="stat-label">图片</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="links-count">0</div>
+          <div class="stat-label">链接</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="words-count">0</div>
+          <div class="stat-label">字数</div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">
+          <span>网页信息</span>
+          <button class="btn btn-secondary" id="copy-all-btn">复制全部</button>
+        </div>
+        <div class="section-content" id="page-info-result"></div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">
+          <span>图片</span>
+          <div>
+            <button class="btn btn-secondary" id="view-images-btn">查看全部</button>
+            <button class="btn btn-success" id="download-images-btn">下载全部</button>
+          </div>
+        </div>
+        <div class="filter-box">
+          <input type="text" class="filter-input" id="image-filter" placeholder="过滤图片...">
+        </div>
+        <div class="image-grid" id="images-result"></div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">
+          <span>链接</span>
+          <button class="btn btn-secondary" id="view-links-btn">查看全部</button>
+        </div>
+        <div class="filter-box">
+          <input type="text" class="filter-input" id="link-filter" placeholder="过滤链接...">
+        </div>
+        <div class="section-content" id="links-result"></div>
+      </div>
+    </div>
+    
+    <div id="settings-tab" class="tab-content">
+      <div class="section">
+        <div class="section-title">设置</div>
+        
+        <div class="setting-item">
+          <label class="setting-label">自动提取页面内容</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="auto-extract">
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">显示图片预览</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="show-previews" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">暗色模式</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode">
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label class="setting-label">数据保留时间</label>
+          <select id="data-retention" class="filter-input">
+            <option value="1">1天</option>
+            <option value="7" selected>7天</option>
+            <option value="30">30天</option>
+            <option value="0">永久</option>
+          </select>
+        </div>
+        
+        <button class="btn btn-primary" id="save-settings-btn">保存设置</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <button class="btn" id="export-btn">导出数据</button>
+    <button class="btn btn-warning" id="clear-btn">清除数据</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
