@@ -241,18 +241,21 @@ document.addEventListener('DOMContentLoaded', function() {
     let html = '';
     
     if (data.title) {
-      html += `<div><strong>标题:</strong> ${data.title}</div>`;
+      const truncatedTitle = data.title.length > 50 ? data.title.substring(0, 50) + '...' : data.title;
+      html += `<div><strong>标题:</strong> <span title="${data.title}">${truncatedTitle}</span></div>`;
     }
     
     if (data.url) {
-      html += `<div><strong>URL:</strong> ${data.url}</div>`;
+      const truncatedUrl = data.url.length > 60 ? data.url.substring(0, 60) + '...' : data.url;
+      html += `<div><strong>URL:</strong> <span title="${data.url}">${truncatedUrl}</span></div>`;
     }
     
     if (data.meta) {
       html += '<div><strong>元标签:</strong><ul>';
       for (const [name, content] of Object.entries(data.meta)) {
         if (content && content.length < 100) { // 限制长度避免显示过长内容
-          html += `<li><strong>${name}:</strong> ${content}</li>`;
+          const truncatedContent = content.length > 50 ? content.substring(0, 50) + '...' : content;
+          html += `<li><strong>${name}:</strong> <span title="${content}">${truncatedContent}</span></li>`;
         }
       }
       html += '</ul></div>';
@@ -319,7 +322,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const linksToShow = links.slice(0, 10);
     
     linksToShow.forEach(link => {
-      html += `<div><strong>${link.text || '无文本'}:</strong> <a href="${link.href}" target="_blank">${link.href}</a></div>`;
+      const linkText = link.text || '无文本';
+      const truncatedText = linkText.length > 30 ? linkText.substring(0, 30) + '...' : linkText;
+      const truncatedHref = link.href.length > 50 ? link.href.substring(0, 50) + '...' : link.href;
+      html += `<div><strong title="${linkText}">${truncatedText}:</strong> <a href="${link.href}" target="_blank" title="${link.href}">${truncatedHref}</a></div>`;
     });
     
     // 如果链接数量超过10个，显示查看全部的提示

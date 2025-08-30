@@ -108,11 +108,14 @@
     .section-content {
       max-height: 200px;
       overflow-y: auto;
+      overflow-x: hidden;
       border: 1px solid #eee;
       padding: 10px;
       border-radius: var(--border-radius);
       font-size: 13px;
       background: #f9f9f9;
+      word-wrap: break-word;
+      word-break: break-all;
     }
     
     .btn {
@@ -194,6 +197,8 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin-top: 10px;
+      max-width: 100%;
+      overflow: hidden;
     }
     
     .image-item {
@@ -206,6 +211,7 @@
       width: 100%;
       height: 80px;
       object-fit: cover;
+      max-width: 100%;
     }
     
     .image-info {
@@ -305,6 +311,30 @@
       .image-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+    }
+    
+    /* 防止内容溢出 */
+    .section-title {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .section-title span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+      display: inline-block;
+    }
+    
+    /* 链接样式防止溢出 */
+    #links-result a {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   </style>
 </head>
