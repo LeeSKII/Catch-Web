@@ -47,6 +47,9 @@ document.addEventListener('DOMContentLoaded', function () {
   // 复制总结按钮事件
   document.getElementById('copy-summary-btn').addEventListener('click', copySummary);
 
+  // 清除缓存按钮事件
+  document.getElementById('clear-cache-btn').addEventListener('click', clearAISummaryCacheForCurrentTab);
+
   // 图片过滤功能
   document.getElementById('image-filter').addEventListener('input', filterImages);
 
@@ -60,6 +63,9 @@ document.addEventListener('DOMContentLoaded', function () {
   if (localStorage.getItem('autoExtract') === 'true') {
     extractData();
   }
+
+  // 加载当前页面的AI总结
+  loadAISummaryForCurrentTab();
 
   // 切换标签页函数
   function switchTab(tabName) {
@@ -686,6 +692,25 @@ document.addEventListener('DOMContentLoaded', function () {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
+              // 保存AI总结到localStorage
+              chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                if (tabs && tabs[0]) {
+                  const url = tabs[0].url;
+                  const summaryType = document.querySelector('input[name="summary-type"]:checked').value;
+                  saveAISummary(url, accumulatedContent, summaryType);
+
+                  // 添加保存指示器
+                  document.getElementById('ai-summary-result').innerHTML += `
+                    <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                      <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px;">已保存</span>
+                      <span style="margin-left: 10px;">生成时间: ${new Date().toLocaleString()}</span>
+                    </div>
+                  `;
+
+                  // 显示清除缓存按钮
+                  document.getElementById('clear-cache-btn').style.display = 'inline-flex';
+                }
+              });
               return;
             }
 
@@ -744,6 +769,92 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch(err => {
       console.error('复制失败:', err);
       alert('复制失败，请重试');
+    });
+  }
+
+  // 保存AI总结到localStorage
+  function saveAISummary(url, content, summaryType) {
+    const summaryData = {
+      content: content,
+      summaryType: summaryType,
+      createdAt: new Date().toISOString(),
+      url: url
+    };
+
+    // 使用URL作为key存储AI总结
+    const key = `aiSummary_${url}`;
+    localStorage.setItem(key, JSON.stringify(summaryData));
+  }
+
+  // 从localStorage加载AI总结
+  function loadAISummary(url) {
+    const key = `aiSummary_${url}`;
+    const summaryData = localStorage.getItem(key);
+
+    if (summaryData) {
+      return JSON.parse(summaryData);
+    }
+
+    return null;
+  }
+
+  // 清除特定URL的AI总结缓存
+  function clearAISummaryCache(url) {
+    const key = `aiSummary_${url}`;
+    localStorage.removeItem(key);
+  }
+
+  // 显示缓存的AI总结
+  function displayCachedAISummary(summaryData) {
+    document.getElementById('ai-status-section').style.display = 'none';
+    document.getElementById('ai-summary-result').innerHTML = `
+      <div id="streaming-content"></div>
+      <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+        <span style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">缓存内容</span>
+        <span style="margin-left: 10px;">生成时间: ${new Date(summaryData.createdAt).toLocaleString()}</span>
+      </div>
+    `;
+
+    // 使用marked渲染markdown
+    document.getElementById('streaming-content').innerHTML = marked.parse(summaryData.content);
+
+    // 显示清除缓存按钮
+    document.getElementById('clear-cache-btn').style.display = 'inline-flex';
+  }
+
+  // 获取当前标签页URL并加载AI总结
+  function loadAISummaryForCurrentTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs && tabs[0]) {
+        const url = tabs[0].url;
+        const summaryData = loadAISummary(url);
+
+        if (summaryData) {
+          displayCachedAISummary(summaryData);
+        }
+      }
+    });
+  }
+
+  // 清除当前URL的AI总结缓存
+  function clearAISummaryCacheForCurrentTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs && tabs[0]) {
+        const url = tabs[0].url;
+        clearAISummaryCache(url);
+
+        // 重置AI总结区域
+        document.getElementById('ai-summary-result').innerHTML = `
+          <div style="text-align: center; color: #666; padding: 20px;">
+            点击"AI总结"按钮开始生成网页内容总结
+          </div>
+        `;
+
+        // 隐藏清除缓存按钮
+        document.getElementById('clear-cache-btn').style.display = 'none';
+
+        alert('缓存已清除');
+      }
     });
   }
 });
