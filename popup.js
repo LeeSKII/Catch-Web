@@ -694,7 +694,8 @@ document.addEventListener('DOMContentLoaded', function () {
               const content = parsed.choices[0]?.delta?.content || '';
               if (content) {
                 accumulatedContent += content;
-                document.getElementById('streaming-content').textContent = accumulatedContent;
+                // 使用marked渲染markdown
+                document.getElementById('streaming-content').innerHTML = marked.parse(accumulatedContent);
                 // 自动滚动到底部
                 document.getElementById('ai-summary-result').scrollTop = document.getElementById('ai-summary-result').scrollHeight;
               }
