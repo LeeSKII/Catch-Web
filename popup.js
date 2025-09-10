@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   // 初始化变量
   let extractedData = {};
   let currentTab = 'extract';
-  
+
   // 加载保存的设置
   loadSettings();
-  
+
   // 标签切换功能
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -13,70 +13,76 @@ document.addEventListener('DOMContentLoaded', function() {
       switchTab(tabName);
     });
   });
-  
+
   // 提取按钮事件
   document.getElementById('extract-btn').addEventListener('click', extractData);
-  
+
   // 保存提取设置按钮事件
   document.getElementById('save-extract-settings-btn').addEventListener('click', saveSettings);
-  
+
   // 复制全部按钮事件
   document.getElementById('copy-all-btn').addEventListener('click', copyAllData);
-  
+
   // 查看全部图片按钮事件
   document.getElementById('view-images-btn').addEventListener('click', viewAllImages);
-  
+
   // 下载全部图片按钮事件
   document.getElementById('download-images-btn').addEventListener('click', downloadAllImages);
-  
+
   // 查看全部链接按钮事件
   document.getElementById('view-links-btn').addEventListener('click', viewAllLinks);
-  
+
   // 导出按钮事件
   document.getElementById('export-btn').addEventListener('click', exportData);
-  
+
   // 清除按钮事件
   document.getElementById('clear-btn').addEventListener('click', clearData);
-  
+
   // 保存设置按钮事件
   document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
-  
+
+  // AI总结按钮事件
+  document.getElementById('ai-summary-btn').addEventListener('click', generateAISummary);
+
+  // 复制总结按钮事件
+  document.getElementById('copy-summary-btn').addEventListener('click', copySummary);
+
   // 图片过滤功能
   document.getElementById('image-filter').addEventListener('input', filterImages);
-  
+
   // 链接过滤功能
   document.getElementById('link-filter').addEventListener('input', filterLinks);
-  
+
   // 暗色模式切换
   document.getElementById('dark-mode').addEventListener('change', toggleDarkMode);
-  
+
   // 如果设置了自动提取，则打开时自动提取
   if (localStorage.getItem('autoExtract') === 'true') {
     extractData();
   }
-  
+
   // 切换标签页函数
   function switchTab(tabName) {
     // 更新活动标签
     document.querySelectorAll('.tab').forEach(tab => {
       tab.classList.toggle('active', tab.getAttribute('data-tab') === tabName);
     });
-    
+
     // 更新活动内容
     document.querySelectorAll('.tab-content').forEach(content => {
       content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
-    
+
     currentTab = tabName;
   }
-  
+
   // 加载设置
   function loadSettings() {
     document.getElementById('auto-extract').checked = localStorage.getItem('autoExtract') === 'true';
     document.getElementById('show-previews').checked = localStorage.getItem('showPreviews') !== 'false';
     document.getElementById('dark-mode').checked = localStorage.getItem('darkMode') === 'true';
     document.getElementById('data-retention').value = localStorage.getItem('dataRetention') || '7';
-    
+
     // 加载提取选项设置
     document.getElementById('extract-html').checked = localStorage.getItem('extractHtml') !== 'false';
     document.getElementById('extract-text').checked = localStorage.getItem('extractText') !== 'false';
@@ -86,21 +92,26 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('extract-styles').checked = localStorage.getItem('extractStyles') === 'true';
     document.getElementById('extract-scripts').checked = localStorage.getItem('extractScripts') === 'true';
     document.getElementById('extract-article').checked = localStorage.getItem('extractArticle') !== 'false';
-    
+
+    // 加载OpenAI API设置
+    document.getElementById('openai-api-key').value = localStorage.getItem('openaiApiKey') || '';
+    document.getElementById('openai-base-url').value = localStorage.getItem('openaiBaseUrl') || 'https://api.openai.com/v1';
+    document.getElementById('ai-model').value = localStorage.getItem('aiModel') || 'gpt-3.5-turbo';
+
     // 应用暗色模式
     if (localStorage.getItem('darkMode') === 'true') {
       document.documentElement.style.setProperty('--light-color', '#212529');
       document.documentElement.style.setProperty('--dark-color', '#f8f9fa');
     }
   }
-  
+
   // 保存设置
   function saveSettings() {
     localStorage.setItem('autoExtract', document.getElementById('auto-extract').checked);
     localStorage.setItem('showPreviews', document.getElementById('show-previews').checked);
     localStorage.setItem('darkMode', document.getElementById('dark-mode').checked);
     localStorage.setItem('dataRetention', document.getElementById('data-retention').value);
-    
+
     // 保存提取选项设置
     localStorage.setItem('extractHtml', document.getElementById('extract-html').checked);
     localStorage.setItem('extractText', document.getElementById('extract-text').checked);
@@ -110,10 +121,18 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('extractStyles', document.getElementById('extract-styles').checked);
     localStorage.setItem('extractScripts', document.getElementById('extract-scripts').checked);
     localStorage.setItem('extractArticle', document.getElementById('extract-article').checked);
-    
+
+    // 保存OpenAI API设置
+    const apiKey = document.getElementById('openai-api-key').value.trim();
+    if (apiKey) {
+      localStorage.setItem('openaiApiKey', apiKey);
+    }
+    localStorage.setItem('openaiBaseUrl', document.getElementById('openai-base-url').value.trim());
+    localStorage.setItem('aiModel', document.getElementById('ai-model').value.trim());
+
     alert('设置已保存！');
   }
-  
+
   // 切换暗色模式
   function toggleDarkMode() {
     if (document.getElementById('dark-mode').checked) {
@@ -124,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.documentElement.style.setProperty('--dark-color', '#212529');
     }
   }
-  
+
   // 提取数据函数
   function extractData() {
     // 获取选中的提取选项
@@ -138,31 +157,31 @@ document.addEventListener('DOMContentLoaded', function() {
       scripts: document.getElementById('extract-scripts').checked,
       article: document.getElementById('extract-article').checked
     };
-    
+
     // 如果没有选中任何选项，提示用户
     if (!Object.values(options).some(opt => opt)) {
       alert('请至少选择一个提取选项！');
       return;
     }
-    
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.scripting.executeScript({
-        target: {tabId: tabs[0].id},
+        target: { tabId: tabs[0].id },
         function: getPageData,
         args: [options]
       }, (results) => {
         if (results && results[0]) {
           extractedData = results[0].result;
-          
+
           // 显示统计信息
           displayStats(extractedData);
-          
+
           // 显示提取结果
           displayResults(extractedData);
-          
+
           // 切换到结果标签页
           switchTab('results');
-          
+
           // 保存提取的数据
           saveExtractedData(extractedData);
         } else if (chrome.runtime.lastError) {
@@ -172,21 +191,21 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   // 在页面上执行的数据提取函数
   function getPageData(options) {
     const data = {};
     const startTime = performance.now();
-    
+
     if (options.html) {
       data.html = document.documentElement.outerHTML;
     }
-    
+
     if (options.text) {
       data.text = document.body.innerText;
       data.wordCount = data.text.length;
     }
-    
+
     if (options.images) {
       data.images = Array.from(document.images).map(img => ({
         src: img.src,
@@ -197,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         naturalHeight: img.naturalHeight
       }));
     }
-    
+
     if (options.links) {
       data.links = Array.from(document.links).map(link => ({
         href: link.href,
@@ -206,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         rel: link.rel
       })).filter(link => link.href && !link.href.startsWith('javascript:'));
     }
-    
+
     if (options.meta) {
       data.meta = {};
       const metaTags = document.querySelectorAll('meta');
@@ -216,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       data.title = document.title;
       data.url = window.location.href;
-      
+
       // 提取主域名
       try {
         const urlObj = new URL(window.location.href);
@@ -225,14 +244,14 @@ document.addEventListener('DOMContentLoaded', function() {
         data.host = 'invalid-host';
       }
     }
-    
+
     if (options.styles) {
       data.styles = {
         styleSheets: Array.from(document.styleSheets).map(sheet => sheet.href || 'inline'),
         styles: Array.from(document.querySelectorAll('style')).map(style => style.innerHTML)
       };
     }
-    
+
     if (options.scripts) {
       data.scripts = Array.from(document.scripts).map(script => ({
         src: script.src,
@@ -241,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
         defer: script.defer
       }));
     }
-    
+
     if (options.article) {
       // 查找article标签并提取内容
       const articleElements = document.querySelectorAll('article');
@@ -253,51 +272,51 @@ document.addEventListener('DOMContentLoaded', function() {
         data.article = null;
       }
     }
-    
+
     data.extractionTime = performance.now() - startTime;
     data.extractedAt = new Date().toISOString();
-    
+
     return data;
   }
-  
+
   // 显示统计信息
   function displayStats(data) {
     document.getElementById('images-count').textContent = data.images ? data.images.length : 0;
     document.getElementById('links-count').textContent = data.links ? data.links.length : 0;
     document.getElementById('words-count').textContent = data.wordCount || 0;
   }
-  
+
   // 显示提取结果
   function displayResults(data) {
     // 显示网页信息
     displayPageInfo(data);
-    
+
     // 显示图片
     displayImages(data.images);
-    
+
     // 显示链接
     displayLinks(data.links);
   }
-  
+
   // 显示网页信息
   function displayPageInfo(data) {
     const pageInfoElement = document.getElementById('page-info-result');
     let html = '';
-    
+
     if (data.title) {
       const truncatedTitle = data.title.length > 50 ? data.title.substring(0, 50) + '...' : data.title;
       html += `<div><strong>标题:</strong> <span title="${data.title}">${truncatedTitle}</span></div>`;
     }
-    
+
     if (data.url) {
       const truncatedUrl = data.url.length > 60 ? data.url.substring(0, 60) + '...' : data.url;
       html += `<div><strong>URL:</strong> <span title="${data.url}">${truncatedUrl}</span></div>`;
     }
-    
+
     if (data.host) {
       html += `<div><strong>主域名:</strong> ${data.host}</div>`;
     }
-    
+
     if (data.meta) {
       html += '<div><strong>元标签:</strong><ul>';
       for (const [name, content] of Object.entries(data.meta)) {
@@ -308,11 +327,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       html += '</ul></div>';
     }
-    
+
     if (data.wordCount) {
       html += `<div><strong>字数:</strong> ${data.wordCount}</div>`;
     }
-    
+
     if (data.article !== undefined) {
       if (data.article) {
         // 如果article内容存在，显示截断版本
@@ -325,28 +344,28 @@ document.addEventListener('DOMContentLoaded', function() {
         html += `<div><strong>文章内容:</strong> 未找到article标签</div>`;
       }
     }
-    
+
     if (data.extractionTime) {
       html += `<div><strong>提取耗时:</strong> ${data.extractionTime.toFixed(2)}ms</div>`;
     }
-    
+
     pageInfoElement.innerHTML = html;
   }
-  
+
   // 显示图片
   function displayImages(images) {
     const imagesElement = document.getElementById('images-result');
-    
+
     if (!images || images.length === 0) {
       imagesElement.innerHTML = '<div>未提取到图片</div>';
       return;
     }
-    
+
     let html = '';
-    
+
     // 只显示前12张图片的预览
     const imagesToShow = images.slice(0, 12);
-    
+
     imagesToShow.forEach(img => {
       html += `
         <div class="image-item">
@@ -357,105 +376,105 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     });
-    
+
     // 如果图片数量超过12张，显示查看全部的提示
     if (images.length > 12) {
       html += `<div class="image-item" style="display: flex; align-items: center; justify-content: center; background: #f0f0f0;">
                 <div>+${images.length - 12}更多</div>
               </div>`;
     }
-    
+
     imagesElement.innerHTML = html;
   }
-  
+
   // 显示链接
   function displayLinks(links) {
     const linksElement = document.getElementById('links-result');
-    
+
     if (!links || links.length === 0) {
       linksElement.innerHTML = '<div>未提取到链接</div>';
       return;
     }
-    
+
     let html = '';
-    
+
     // 只显示前10个链接
     const linksToShow = links.slice(0, 10);
-    
+
     linksToShow.forEach(link => {
       const linkText = link.text || '无文本';
       const truncatedText = linkText.length > 30 ? linkText.substring(0, 30) + '...' : linkText;
       const truncatedHref = link.href.length > 50 ? link.href.substring(0, 50) + '...' : link.href;
       html += `<div><strong title="${linkText}">${truncatedText}:</strong> <a href="${link.href}" target="_blank" title="${link.href}">${truncatedHref}</a></div>`;
     });
-    
+
     // 如果链接数量超过10个，显示查看全部的提示
     if (links.length > 10) {
       html += `<div>... 还有 ${links.length - 10} 个链接</div>`;
     }
-    
+
     linksElement.innerHTML = html;
   }
-  
+
   // 过滤图片
   function filterImages() {
     const filterText = document.getElementById('image-filter').value.toLowerCase();
     const images = extractedData.images || [];
-    
+
     if (!filterText) {
       displayImages(images);
       return;
     }
-    
-    const filteredImages = images.filter(img => 
-      img.src.toLowerCase().includes(filterText) || 
+
+    const filteredImages = images.filter(img =>
+      img.src.toLowerCase().includes(filterText) ||
       (img.alt && img.alt.toLowerCase().includes(filterText))
     );
-    
+
     displayImages(filteredImages);
   }
-  
+
   // 过滤链接
   function filterLinks() {
     const filterText = document.getElementById('link-filter').value.toLowerCase();
     const links = extractedData.links || [];
-    
+
     if (!filterText) {
       displayLinks(links);
       return;
     }
-    
-    const filteredLinks = links.filter(link => 
-      link.href.toLowerCase().includes(filterText) || 
+
+    const filteredLinks = links.filter(link =>
+      link.href.toLowerCase().includes(filterText) ||
       (link.text && link.text.toLowerCase().includes(filterText))
     );
-    
+
     displayLinks(filteredLinks);
   }
-  
+
   // 查看全部图片
   function viewAllImages() {
     if (!extractedData.images || extractedData.images.length === 0) {
       alert('没有可查看的图片');
       return;
     }
-    
+
     // 在新标签页中打开图片查看器
     chrome.tabs.create({
       url: chrome.runtime.getURL('image-viewer.html')
     });
   }
-  
+
   // 下载全部图片
   function downloadAllImages() {
     if (!extractedData.images || extractedData.images.length === 0) {
       alert('没有可下载的图片');
       return;
     }
-    
+
     // 这里应该实现下载逻辑
     alert(`开始下载 ${extractedData.images.length} 张图片`);
-    
+
     // 实际实现会使用chrome.downloads API
     extractedData.images.forEach((img, index) => {
       chrome.downloads.download({
@@ -465,24 +484,24 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   // 查看全部链接
   function viewAllLinks() {
     if (!extractedData.links || extractedData.links.length === 0) {
       alert('没有可查看的链接');
       return;
     }
-    
+
     // 在新标签页中打开链接查看器
     chrome.tabs.create({
       url: chrome.runtime.getURL('link-viewer.html')
     });
   }
-  
+
   // 复制全部数据
   function copyAllData() {
     const text = JSON.stringify(extractedData, null, 2);
-    
+
     navigator.clipboard.writeText(text).then(() => {
       alert('数据已复制到剪贴板！');
     }).catch(err => {
@@ -490,24 +509,24 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('复制失败，请重试');
     });
   }
-  
+
   // 导出数据
   function exportData() {
     if (Object.keys(extractedData).length === 0) {
       alert('没有数据可导出');
       return;
     }
-    
-    const blob = new Blob([JSON.stringify(extractedData, null, 2)], {type: 'application/json'});
+
+    const blob = new Blob([JSON.stringify(extractedData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     // 获取标题和URL来构建文件名
     let title = extractedData.title || 'untitled';
     let urlPart = extractedData.url || 'no-url';
-    
+
     // 清理标题，移除不适合文件名的字符
     title = title.replace(/[\\/:*?"<>|]/g, '-').substring(0, 50);
-    
+
     // 从URL中提取域名部分
     try {
       const urlObj = new URL(urlPart);
@@ -515,17 +534,17 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
       urlPart = 'invalid-url';
     }
-    
+
     const date = new Date().toISOString().slice(0, 10);
     const filename = `${title}-${urlPart}-${date}.json`;
-    
+
     chrome.downloads.download({
       url: url,
       filename: filename,
       saveAs: true
     });
   }
-  
+
   // 清除数据
   function clearData() {
     if (confirm('确定要清除所有提取的数据吗？')) {
@@ -536,12 +555,12 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('images-count').textContent = '0';
       document.getElementById('links-count').textContent = '0';
       document.getElementById('words-count').textContent = '0';
-      
+
       // 清除存储的数据
       localStorage.removeItem('extractedData');
     }
   }
-  
+
   // 保存提取的数据
   function saveExtractedData(data) {
     // 只保存必要的数据，避免存储过大
@@ -555,7 +574,175 @@ document.addEventListener('DOMContentLoaded', function() {
       article: data.article, // 添加article字段
       extractedAt: data.extractedAt
     };
-    
+
     localStorage.setItem('extractedData', JSON.stringify(dataToSave));
+  }
+
+  // 生成AI总结
+  function generateAISummary() {
+    // 检查是否已提取数据
+    if (Object.keys(extractedData).length === 0) {
+      alert('请先提取网页数据！');
+      switchTab('extract');
+      return;
+    }
+
+    // 检查API密钥
+    const apiKey = localStorage.getItem('openaiApiKey');
+    if (!apiKey) {
+      alert('请先在设置中配置OpenAI API密钥！');
+      switchTab('settings');
+      return;
+    }
+
+    // 获取总结类型
+    const summaryType = document.querySelector('input[name="summary-type"]:checked').value;
+
+    // 显示加载状态
+    document.getElementById('ai-status-section').style.display = 'block';
+    document.getElementById('ai-summary-result').innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">正在生成AI总结...</div>';
+
+    // 根据总结类型准备内容
+    let content = '';
+    let prompt = '';
+
+    switch (summaryType) {
+      case 'full':
+        content = extractedData.text || '';
+        prompt = '请对以下网页内容进行总结，要求简洁明了，突出重点：\n\n';
+        break;
+      case 'article':
+        content = extractedData.article || extractedData.text || '';
+        prompt = '请对以下文章内容进行总结，要求简洁明了，突出文章的主要观点和结论：\n\n';
+        break;
+      case 'keyinfo':
+        content = extractedData.text || '';
+        prompt = '请从以下网页内容中提取关键信息，包括：主要主题、重要数据、关键人物、时间地点等核心信息：\n\n';
+        break;
+    }
+
+    // 限制内容长度，避免超过API限制
+    if (content.length > 4000) {
+      content = content.substring(0, 4000) + '...[内容已截断]';
+    }
+
+    // 构建完整的请求内容
+    const fullPrompt = prompt + content;
+
+    // 调用OpenAI API
+    callOpenAI(apiKey, fullPrompt);
+  }
+
+  // 调用OpenAI API
+  async function callOpenAI(apiKey, prompt) {
+    const model = localStorage.getItem('aiModel') || 'deepseek-chat';
+    const baseUrl = localStorage.getItem('openaiBaseUrl') || 'https://api.deepseek.com';
+    const apiUrl = `${baseUrl}/chat/completions`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          stream: true,
+          max_tokens: 5000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'API请求失败');
+      }
+
+      // 初始化流式输出显示
+      document.getElementById('ai-status-section').style.display = 'none';
+      document.getElementById('ai-summary-result').innerHTML = `
+        <div style="white-space: pre-wrap; line-height: 1.6;" id="streaming-content"></div>
+      `;
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices[0]?.delta?.content || '';
+              if (content) {
+                accumulatedContent += content;
+                document.getElementById('streaming-content').textContent = accumulatedContent;
+                // 自动滚动到底部
+                document.getElementById('ai-summary-result').scrollTop = document.getElementById('ai-summary-result').scrollHeight;
+              }
+            } catch (e) {
+              // 忽略解析错误
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('OpenAI API调用失败:', error);
+      document.getElementById('ai-status-section').style.display = 'none';
+      document.getElementById('ai-summary-result').innerHTML = `
+        <div style="color: #f72585; padding: 20px; text-align: center;">
+          <strong>AI总结失败</strong><br>
+          ${error.message}<br>
+          <small>请检查API密钥是否正确，或稍后重试</small>
+        </div>
+      `;
+    }
+  }
+
+  // 显示AI总结结果
+  function displayAISummary(summary) {
+    document.getElementById('ai-status-section').style.display = 'none';
+    document.getElementById('ai-summary-result').innerHTML = `
+      <div style="white-space: pre-wrap; line-height: 1.6;">
+        ${summary}
+      </div>
+    `;
+  }
+
+  // 复制AI总结
+  function copySummary() {
+    const summaryElement = document.getElementById('ai-summary-result');
+    const summaryText = summaryElement.textContent;
+
+    if (!summaryText || summaryText.includes('点击"AI总结"按钮开始生成网页内容总结')) {
+      alert('没有可复制的总结内容');
+      return;
+    }
+
+    navigator.clipboard.writeText(summaryText).then(() => {
+      alert('AI总结已复制到剪贴板！');
+    }).catch(err => {
+      console.error('复制失败:', err);
+      alert('复制失败，请重试');
+    });
   }
 });

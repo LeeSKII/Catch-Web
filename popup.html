@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <style>
@@ -14,12 +15,12 @@
       --border-radius: 8px;
       --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
     * {
       box-sizing: border-box;
       transition: all 0.3s ease;
     }
-    
+
     body {
       width: 500px;
       padding: 0;
@@ -28,7 +29,7 @@
       background-color: var(--light-color);
       color: var(--dark-color);
     }
-    
+
     .header {
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: white;
@@ -37,7 +38,7 @@
       border-radius: 0 0 var(--border-radius) var(--border-radius);
       box-shadow: var(--box-shadow);
     }
-    
+
     .header h1 {
       margin: 0;
       font-size: 18px;
@@ -46,16 +47,16 @@
       justify-content: center;
       gap: 10px;
     }
-    
+
     .header h1 .icon {
       font-size: 20px;
     }
-    
+
     .container {
       padding: 15px;
       min-width: 500px;
     }
-    
+
     .tabs {
       display: flex;
       margin-bottom: 15px;
@@ -64,7 +65,7 @@
       overflow: hidden;
       box-shadow: var(--box-shadow);
     }
-    
+
     .tab {
       flex: 1;
       padding: 10px;
@@ -74,20 +75,20 @@
       border: none;
       font-weight: 600;
     }
-    
+
     .tab.active {
       background: var(--primary-color);
       color: white;
     }
-    
+
     .tab-content {
       display: none;
     }
-    
+
     .tab-content.active {
       display: block;
     }
-    
+
     .section {
       background: white;
       border-radius: var(--border-radius);
@@ -95,7 +96,7 @@
       margin-bottom: 15px;
       box-shadow: var(--box-shadow);
     }
-    
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -104,7 +105,7 @@
       font-weight: 600;
       color: var(--secondary-color);
     }
-    
+
     .section-content {
       max-height: 200px;
       overflow-y: auto;
@@ -117,7 +118,7 @@
       word-wrap: break-word;
       word-break: break-all;
     }
-    
+
     .btn {
       padding: 8px 15px;
       border: none;
@@ -128,38 +129,38 @@
       align-items: center;
       gap: 5px;
     }
-    
+
     .btn-primary {
       background: var(--primary-color);
       color: white;
     }
-    
+
     .btn-secondary {
       background: var(--accent-color);
       color: white;
     }
-    
+
     .btn-success {
       background: var(--success-color);
       color: white;
     }
-    
+
     .btn-warning {
       background: var(--warning-color);
       color: white;
     }
-    
+
     .btn:hover {
       opacity: 0.9;
       transform: translateY(-2px);
     }
-    
+
     .filter-box {
       margin-bottom: 10px;
       display: flex;
       gap: 10px;
     }
-    
+
     .filter-input {
       flex: 1;
       padding: 8px;
@@ -167,31 +168,31 @@
       border-radius: var(--border-radius);
       font-size: 13px;
     }
-    
+
     .stats {
       display: flex;
       justify-content: space-around;
       margin: 15px 0;
       text-align: center;
     }
-    
+
     .stat-item {
       flex: 1;
       padding: 10px;
     }
-    
+
     .stat-value {
       font-size: 20px;
       font-weight: bold;
       color: var(--primary-color);
     }
-    
+
     .stat-label {
       font-size: 12px;
       color: #666;
     }
-    
-    
+
+
     .image-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -200,20 +201,20 @@
       max-width: 100%;
       overflow: hidden;
     }
-    
+
     .image-item {
       border-radius: var(--border-radius);
       overflow: hidden;
       position: relative;
     }
-    
+
     .image-item img {
       width: 100%;
       height: 80px;
       object-fit: cover;
       max-width: 100%;
     }
-    
+
     .image-info {
       position: absolute;
       bottom: 0;
@@ -226,42 +227,42 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
-    
+
     .image-item:hover .image-info {
       opacity: 1;
     }
-    
+
     .settings-panel {
       background: #f5f5f5;
       padding: 15px;
       border-radius: var(--border-radius);
       margin-top: 15px;
     }
-    
+
     .setting-item {
       margin-bottom: 10px;
     }
-    
+
     .setting-label {
       display: block;
       margin-bottom: 5px;
       font-weight: 600;
       font-size: 13px;
     }
-    
+
     .toggle-switch {
       position: relative;
       display: inline-block;
       width: 50px;
       height: 24px;
     }
-    
+
     .toggle-switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
-    
+
     .slider {
       position: absolute;
       cursor: pointer;
@@ -273,7 +274,7 @@
       transition: .4s;
       border-radius: 24px;
     }
-    
+
     .slider:before {
       position: absolute;
       content: "";
@@ -285,15 +286,15 @@
       transition: .4s;
       border-radius: 50%;
     }
-    
-    input:checked + .slider {
+
+    input:checked+.slider {
       background-color: var(--primary-color);
     }
-    
-    input:checked + .slider:before {
+
+    input:checked+.slider:before {
       transform: translateX(26px);
     }
-    
+
     .footer {
       display: flex;
       justify-content: space-between;
@@ -301,18 +302,18 @@
       border-top: 1px solid #eee;
       background: white;
     }
-    
+
     /* 响应式设计 */
     @media (max-width: 500px) {
       body {
         width: 100%;
       }
-      
+
       .image-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
-    
+
     /* 防止内容溢出 */
     .section-title {
       max-width: 100%;
@@ -320,14 +321,14 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
+
     .section-title span {
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 200px;
       display: inline-block;
     }
-    
+
     /* 链接样式防止溢出 */
     #links-result a {
       display: inline-block;
@@ -336,50 +337,63 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    /* 加载动画 */
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="header">
     <h1><span class="icon">📋</span> 网页信息提取器</h1>
   </div>
-  
+
   <div class="container">
     <div class="tabs">
       <button class="tab active" data-tab="extract">提取</button>
       <button class="tab" data-tab="results">结果</button>
+      <button class="tab" data-tab="ai">AI</button>
       <button class="tab" data-tab="settings">设置</button>
     </div>
-    
+
     <div id="extract-tab" class="tab-content active">
       <div class="section">
         <div class="section-title">
           <span>提取选项</span>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-html" checked> HTML内容
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-text" checked> 文本内容
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-images" checked> 图片信息
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-links" checked> 链接信息
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-meta" checked> 元数据
@@ -391,21 +405,21 @@
             <input type="checkbox" id="extract-article" checked> 文章内容
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-styles"> CSS样式
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">
             <input type="checkbox" id="extract-scripts"> 脚本信息
           </label>
         </div>
-        
-       
-        
+
+
+
         <div style="display: flex; gap: 10px; margin-top: 10px;">
           <button id="extract-btn" class="btn btn-primary" style="flex: 1;">
             <span class="icon">🔍</span> 开始提取
@@ -416,7 +430,7 @@
         </div>
       </div>
     </div>
-    
+
     <div id="results-tab" class="tab-content">
       <div class="stats">
         <div class="stat-item">
@@ -432,7 +446,7 @@
           <div class="stat-label">字数</div>
         </div>
       </div>
-      
+
       <div class="section">
         <div class="section-title">
           <span>网页信息</span>
@@ -443,7 +457,7 @@
         </div>
         <div class="section-content" id="page-info-result"></div>
       </div>
-      
+
       <div class="section">
         <div class="section-title">
           <span>图片</span>
@@ -457,7 +471,7 @@
         </div>
         <div class="image-grid" id="images-result"></div>
       </div>
-      
+
       <div class="section">
         <div class="section-title">
           <span>链接</span>
@@ -469,11 +483,71 @@
         <div class="section-content" id="links-result"></div>
       </div>
     </div>
-    
+
+    <div id="ai-tab" class="tab-content">
+      <div class="section">
+        <div class="section-title">
+          <span>AI总结选项</span>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="radio" name="summary-type" value="full" checked> 全文总结
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="radio" name="summary-type" value="article"> 文章总结
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="radio" name="summary-type" value="keyinfo"> 关键信息提取
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button id="ai-summary-btn" class="btn btn-primary" style="flex: 1;">
+            <span class="icon">🤖</span> AI总结
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>AI总结结果</span>
+          <div>
+            <button class="btn btn-secondary" id="copy-summary-btn">复制总结</button>
+          </div>
+        </div>
+        <div class="section-content" id="ai-summary-result">
+          <div style="text-align: center; color: #666; padding: 20px;">
+            点击"AI总结"按钮开始生成网页内容总结
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="ai-status-section" style="display: none;">
+        <div class="section-title">
+          <span>处理状态</span>
+        </div>
+        <div class="section-content" id="ai-status">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="loading-spinner"
+              style="width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;">
+            </div>
+            <span>正在生成AI总结...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="settings-tab" class="tab-content">
       <div class="section">
         <div class="section-title">设置</div>
-        
+
         <div class="setting-item">
           <label class="setting-label">自动提取页面内容</label>
           <label class="toggle-switch">
@@ -481,7 +555,7 @@
             <span class="slider"></span>
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">显示图片预览</label>
           <label class="toggle-switch">
@@ -489,7 +563,7 @@
             <span class="slider"></span>
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">暗色模式</label>
           <label class="toggle-switch">
@@ -497,7 +571,7 @@
             <span class="slider"></span>
           </label>
         </div>
-        
+
         <div class="setting-item">
           <label class="setting-label">数据保留时间</label>
           <select id="data-retention" class="filter-input">
@@ -507,16 +581,42 @@
             <option value="0">永久</option>
           </select>
         </div>
-        
+
+        <div class="setting-item">
+          <label class="setting-label">OpenAI API密钥</label>
+          <input type="password" id="openai-api-key" class="filter-input" placeholder="输入您的OpenAI API密钥">
+          <div style="font-size: 11px; color: #666; margin-top: 5px;">
+            您的API密钥将安全存储在本地，不会上传到任何服务器
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">OpenAI Base URL</label>
+          <input type="text" id="openai-base-url" class="filter-input" placeholder="https://api.openai.com/v1"
+            value="https://api.openai.com/v1">
+          <div style="font-size: 11px; color: #666; margin-top: 5px;">
+            如需使用自定义API端点，请修改此URL
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">AI模型</label>
+          <input type="text" id="ai-model" class="filter-input" placeholder="gpt-3.5-turbo" value="gpt-3.5-turbo">
+          <div style="font-size: 11px; color: #666; margin-top: 5px;">
+            输入要使用的AI模型名称，如：gpt-3.5-turbo, gpt-4, claude-3-sonnet-20240229等
+          </div>
+        </div>
+
         <button class="btn btn-primary" id="save-settings-btn">保存设置</button>
       </div>
     </div>
   </div>
-  
+
   <div class="footer">
     <button class="btn btn-warning" id="clear-btn">清除数据</button>
   </div>
 
   <script src="popup.js"></script>
 </body>
+
 </html>

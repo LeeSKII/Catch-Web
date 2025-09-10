@@ -3,7 +3,8 @@
   "name": "网页信息提取器",
   "version": "1.0",
   "description": "提取网页的全部信息，包括HTML、文本、图片、链接和元数据",
-  "permissions": ["activeTab", "scripting", "downloads"],
+  "permissions": ["activeTab", "scripting", "downloads", "storage"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "提取网页信息"
