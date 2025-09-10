@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // 初始化流式输出显示
       document.getElementById('ai-status-section').style.display = 'none';
       document.getElementById('ai-summary-result').innerHTML = `
-        <div style="white-space: pre-wrap; line-height: 1.6;" id="streaming-content"></div>
+        <div id="streaming-content"></div>
       `;
 
       const reader = response.body.getReader();
