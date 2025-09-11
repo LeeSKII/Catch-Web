@@ -87,6 +87,20 @@ document.addEventListener("DOMContentLoaded", function () {
   // 加载当前页面的AI总结
   loadAISummaryForCurrentTab();
 
+  // 监听浏览器tab切换事件
+  chrome.tabs.onActivated.addListener(function(activeInfo) {
+    // 当用户切换到不同的tab时，自动执行数据提取和AI总结加载
+    refreshDataForNewTab();
+  });
+
+  // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
+  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    // 只在页面加载完成时更新
+    if (changeInfo.status === 'complete' && tab.active) {
+      refreshDataForNewTab();
+    }
+  });
+
   // 监听总结类型切换事件
   document.querySelectorAll('input[name="summary-type"]').forEach((radio) => {
     radio.addEventListener("change", () => {
@@ -1025,5 +1039,17 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("缓存已清除");
       }
     });
+  }
+
+  // 当切换到新的tab或URL变化时刷新数据
+  function refreshDataForNewTab() {
+    // 延迟执行以确保新页面已完全加载
+    setTimeout(() => {
+      // 提取新页面的数据
+      extractData();
+      
+      // 加载新页面的AI总结
+      loadAISummaryForCurrentTab();
+    }, 500);
   }
 });
