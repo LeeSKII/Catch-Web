@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>网页信息提取器 - Sidepanel</title>
+    <link rel="stylesheet" href="sidepanel.css">
+  </head>
+  <body>
+    <div class="header">
+      <h1><span class="icon">📋</span> 网页信息提取器</h1>
+    </div>
+
+    <div class="container">
+      <div class="tabs">
+        <button class="tab active" data-tab="extract">提取</button>
+        <button class="tab" data-tab="results">结果</button>
+        <button class="tab" data-tab="ai">AI</button>
+        <button class="tab" data-tab="settings">设置</button>
+      </div>
+
+      <div id="extract-tab" class="tab-content active">
+        <div class="section">
+          <div class="section-title">
+            <span>提取选项</span>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-html" checked> HTML内容
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-text" checked> 文本内容
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-images" checked> 图片信息
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-links" checked> 链接信息
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-meta" checked> 元数据
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-article" checked> 文章内容
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-styles"> CSS样式
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="extract-scripts"> 脚本信息
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button id="extract-btn" class="btn btn-primary" style="flex: 1;">
+              <span class="icon">🔍</span> 开始提取
+            </button>
+            <button id="save-extract-settings-btn" class="btn btn-secondary" style="flex: 1;">
+              <span class="icon">💾</span> 保存设置
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="results-tab" class="tab-content">
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="images-count">0</div>
+            <div class="stat-label">图片</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="links-count">0</div>
+            <div class="stat-label">链接</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="words-count">0</div>
+            <div class="stat-label">字数</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <span>网页信息</span>
+            <div>
+              <button class="btn btn-secondary" id="copy-all-btn">复制全部</button>
+              <button class="btn btn-primary" id="export-btn">导出数据</button>
+            </div>
+          </div>
+          <div class="section-content" id="page-info-result"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <span>图片</span>
+            <div>
+              <button class="btn btn-secondary" id="view-images-btn">查看全部</button>
+              <button class="btn btn-success" id="download-images-btn">下载全部</button>
+            </div>
+          </div>
+          <div class="filter-box">
+            <input type="text" class="filter-input" id="image-filter" placeholder="过滤图片...">
+          </div>
+          <div class="image-grid" id="images-result"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <span>链接</span>
+            <button class="btn btn-secondary" id="view-links-btn">查看全部</button>
+          </div>
+          <div class="filter-box">
+            <input type="text" class="filter-input" id="link-filter" placeholder="过滤链接...">
+          </div>
+          <div class="section-content" id="links-result"></div>
+        </div>
+      </div>
+
+      <div id="ai-tab" class="tab-content">
+        <div class="section">
+          <div class="section-title">
+            <span>AI总结选项</span>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <label class="setting-label" style="flex: 1; text-align: center; margin: 0;">
+              <input type="radio" name="summary-type" value="full" checked> 全文总结
+            </label>
+            <label class="setting-label" style="flex: 1; text-align: center; margin: 0;">
+              <input type="radio" name="summary-type" value="article"> 文章总结
+            </label>
+            <label class="setting-label" style="flex: 1; text-align: center; margin: 0;">
+              <input type="radio" name="summary-type" value="keyinfo"> 关键信息提取
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button id="ai-summary-btn" class="btn btn-primary" style="flex: 1;">
+              <span class="icon">🤖</span> AI总结
+            </button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <span>AI总结结果</span>
+            <div>
+              <button class="btn btn-secondary" id="copy-summary-btn">复制总结</button>
+              <button class="btn btn-warning" id="clear-cache-btn" style="display: none;">清除缓存</button>
+            </div>
+          </div>
+          <div class="section-content" id="ai-summary-result">
+            <div style="text-align: center; color: #666; padding: 20px;">
+              点击"AI总结"按钮开始生成网页内容总结
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="ai-status-section" style="display: none;">
+          <div class="section-title">
+            <span>处理状态</span>
+          </div>
+          <div class="section-content" id="ai-status">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="loading-spinner"
+                style="width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;">
+              </div>
+              <span>正在生成AI总结...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-tab" class="tab-content">
+        <div class="section">
+          <div class="section-title">设置</div>
+
+          <div class="setting-item">
+            <label class="setting-label">自动提取页面内容</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="auto-extract">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">显示图片预览</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="show-previews" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">暗色模式</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="dark-mode">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">数据保留时间</label>
+            <select id="data-retention" class="filter-input">
+              <option value="1">1天</option>
+              <option value="7" selected>7天</option>
+              <option value="30">30天</option>
+              <option value="0">永久</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">OpenAI API密钥</label>
+            <input type="password" id="openai-api-key" class="filter-input" placeholder="输入您的OpenAI API密钥">
+            <div style="font-size: 11px; color: #666; margin-top: 5px;">
+              您的API密钥将安全存储在本地，不会上传到任何服务器
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">OpenAI Base URL</label>
+            <input type="text" id="openai-base-url" class="filter-input" placeholder="https://api.openai.com/v1"
+              value="https://api.openai.com/v1">
+            <div style="font-size: 11px; color: #666; margin-top: 5px;">
+              如需使用自定义API端点，请修改此URL
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">AI模型</label>
+            <input type="text" id="ai-model" class="filter-input" placeholder="gpt-3.5-turbo" value="gpt-3.5-turbo">
+            <div style="font-size: 11px; color: #666; margin-top: 5px;">
+              输入要使用的AI模型名称，如：gpt-3.5-turbo, gpt-4, claude-3-sonnet-20240229等
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="save-settings-btn">保存设置</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="btn btn-warning" id="clear-btn">清除数据</button>
+    </div>
+
+    <!-- 引入marked库用于markdown渲染 -->
+    <script src="marked.min.js"></script>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>
