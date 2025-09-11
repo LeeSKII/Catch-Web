@@ -1041,8 +1041,41 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // 清空panel数据
+  function clearPanelData() {
+    // 清空提取的数据
+    extractedData = {};
+    
+    // 清空显示的内容
+    document.getElementById("page-info-result").innerHTML = "";
+    document.getElementById("images-result").innerHTML = "";
+    document.getElementById("links-result").innerHTML = "";
+    document.getElementById("images-count").textContent = "0";
+    document.getElementById("links-count").textContent = "0";
+    document.getElementById("words-count").textContent = "0";
+    
+    // 清空AI总结区域
+    document.getElementById("ai-summary-result").innerHTML = `
+      <div style="text-align: center; color: #666; padding: 20px;">
+        点击"AI总结"按钮开始生成网页内容总结
+      </div>
+    `;
+    document.getElementById("ai-status-section").style.display = "none";
+    
+    // 隐藏AI总结内容区域
+    const aiSummarySection = document.querySelector(
+      "#ai-tab .section:nth-child(2)"
+    );
+    if (aiSummarySection) {
+      aiSummarySection.style.display = "none";
+    }
+  }
+
   // 当切换到新的tab或URL变化时刷新数据
   function refreshDataForNewTab() {
+    // 立即清空当前panel数据
+    clearPanelData();
+    
     // 延迟执行以确保新页面已完全加载
     setTimeout(() => {
       // 提取新页面的数据
