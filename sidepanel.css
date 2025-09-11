@@ -20,7 +20,7 @@ body {
   height: 100vh;
   padding: 0;
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--light-color);
   color: var(--dark-color);
   overflow-y: auto;
@@ -29,7 +29,11 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
   color: white;
   padding: 15px;
   text-align: center;
@@ -110,7 +114,7 @@ body {
 }
 
 .section-content {
-  max-height: 300px;
+  max-height: 800px;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #eee;
@@ -274,7 +278,7 @@ body {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 24px;
 }
 
@@ -286,15 +290,15 @@ body {
   left: 4px;
   bottom: 4px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 50%;
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: var(--primary-color);
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   transform: translateX(26px);
 }
 
@@ -310,13 +314,13 @@ input:checked+.slider:before {
 /* 响应式设计 */
 @media (max-width: 400px) {
   .tabs {
-    flex-direction: column;
+    flex-direction: row;
   }
-  
+
   .tab {
     margin-bottom: 2px;
   }
-  
+
   .image-grid {
     grid-template-columns: repeat(1, 1fr);
   }
