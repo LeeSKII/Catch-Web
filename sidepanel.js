@@ -67,6 +67,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // 加载当前页面的AI总结
   loadAISummaryForCurrentTab();
 
+  // 监听总结类型切换事件
+  document.querySelectorAll('input[name="summary-type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      loadAISummaryForCurrentTab();
+    });
+  });
+
   // 切换标签页函数
   function switchTab(tabName) {
     // 更新活动标签
@@ -676,6 +683,12 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('ai-summary-result').innerHTML = `
         <div id="streaming-content"></div>
       `;
+      
+      // 确保AI总结内容区域显示
+      const aiSummarySection = document.querySelector('#ai-tab .section:nth-child(2)');
+      if (aiSummarySection) {
+        aiSummarySection.style.display = 'block';
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -706,9 +719,6 @@ document.addEventListener('DOMContentLoaded', function () {
                       <span style="margin-left: 10px;">生成时间: ${new Date().toLocaleString()}</span>
                     </div>
                   `;
-
-                  // 显示清除缓存按钮
-                  document.getElementById('clear-cache-btn').style.display = 'inline-flex';
                 }
               });
               return;
@@ -781,14 +791,15 @@ document.addEventListener('DOMContentLoaded', function () {
       url: url
     };
 
-    // 使用URL作为key存储AI总结
-    const key = `aiSummary_${url}`;
+    // 使用URL和总结类型作为key存储AI总结，这样不同类型的总结可以分别保存
+    const key = `aiSummary_${url}_${summaryType}`;
     localStorage.setItem(key, JSON.stringify(summaryData));
   }
 
   // 从localStorage加载AI总结
-  function loadAISummary(url) {
-    const key = `aiSummary_${url}`;
+  function loadAISummary(url, summaryType) {
+    // 使用URL和总结类型作为key加载AI总结
+    const key = `aiSummary_${url}_${summaryType}`;
     const summaryData = localStorage.getItem(key);
 
     if (summaryData) {
@@ -799,8 +810,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // 清除特定URL的AI总结缓存
-  function clearAISummaryCache(url) {
-    const key = `aiSummary_${url}`;
+  function clearAISummaryCache(url, summaryType) {
+    // 使用URL和总结类型作为key清除AI总结缓存
+    const key = `aiSummary_${url}_${summaryType}`;
     localStorage.removeItem(key);
   }
 
@@ -817,9 +829,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 使用marked渲染markdown
     document.getElementById('streaming-content').innerHTML = marked.parse(summaryData.content);
-
-    // 显示清除缓存按钮
-    document.getElementById('clear-cache-btn').style.display = 'inline-flex';
+    
+    // 确保AI总结内容区域显示
+    const aiSummarySection = document.querySelector('#ai-tab .section:nth-child(2)');
+    if (aiSummarySection) {
+      aiSummarySection.style.display = 'block';
+    }
   }
 
   // 获取当前标签页URL并加载AI总结
@@ -827,10 +842,21 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs && tabs[0]) {
         const url = tabs[0].url;
-        const summaryData = loadAISummary(url);
+        // 获取当前选中的总结类型
+        const summaryType = document.querySelector('input[name="summary-type"]:checked').value;
+        const summaryData = loadAISummary(url, summaryType);
 
         if (summaryData) {
           displayCachedAISummary(summaryData);
+        } else {
+          // 如果没有对应类型的总结数据，隐藏AI总结结果区域
+          document.getElementById('ai-status-section').style.display = 'none';
+          document.getElementById('ai-summary-result').innerHTML = '';
+          // 隐藏整个AI总结内容区域
+          const aiSummarySection = document.querySelector('#ai-tab .section:nth-child(2)');
+          if (aiSummarySection) {
+            aiSummarySection.style.display = 'none';
+          }
         }
       }
     });
@@ -841,7 +867,9 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs && tabs[0]) {
         const url = tabs[0].url;
-        clearAISummaryCache(url);
+        // 获取当前选中的总结类型
+        const summaryType = document.querySelector('input[name="summary-type"]:checked').value;
+        clearAISummaryCache(url, summaryType);
 
         // 重置AI总结区域
         document.getElementById('ai-summary-result').innerHTML = `
@@ -849,9 +877,6 @@ document.addEventListener('DOMContentLoaded', function () {
             点击"AI总结"按钮开始生成网页内容总结
           </div>
         `;
-
-        // 隐藏清除缓存按钮
-        document.getElementById('clear-cache-btn').style.display = 'none';
 
         alert('缓存已清除');
       }
