@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   // 初始化变量
   let extractedData = {};
-  let currentTab = 'extract';
+  let currentTab = 'results';
 
   // 加载保存的设置
   loadSettings();
@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 检查是否已提取数据
     if (Object.keys(extractedData).length === 0) {
       alert('请先提取网页数据！');
-      switchTab('extract');
+      switchTab('settings');
       return;
     }
 
