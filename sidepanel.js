@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 加载保存的设置
   loadSettings();
+  
+  // 清理过期数据
+  cleanExpiredData();
 
   // 标签切换功能
   document.querySelectorAll(".tab").forEach((tab) => {
@@ -895,8 +898,76 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // 清理过期数据
+  function cleanExpiredData() {
+    console.log("[DEBUG] 开始清理过期数据");
+    
+    // 获取数据保留时间设置（天）
+    const retentionDays = parseInt(localStorage.getItem("dataRetention") || "7");
+    
+    // 如果设置为永久保留（0天），则不进行清理
+    if (retentionDays === 0) {
+      console.log("[DEBUG] 数据保留设置为永久，跳过清理");
+      return;
+    }
+    
+    // 计算截止时间（毫秒）
+    const cutoffTime = new Date().getTime() - (retentionDays * 24 * 60 * 60 * 1000);
+    console.log("[DEBUG] 数据保留时间:", retentionDays, "天");
+    console.log("[DEBUG] 截止时间戳:", cutoffTime);
+    
+    // 清理提取的数据
+    const extractedDataStr = localStorage.getItem("extractedData");
+    if (extractedDataStr) {
+      try {
+        const extractedData = JSON.parse(extractedDataStr);
+        if (extractedData.extractedAt) {
+          const extractedTime = new Date(extractedData.extractedAt).getTime();
+          if (extractedTime < cutoffTime) {
+            console.log("[DEBUG] 删除过期的提取数据");
+            localStorage.removeItem("extractedData");
+          } else {
+            console.log("[DEBUG] 提取数据未过期，保留");
+          }
+        }
+      } catch (e) {
+        console.error("[DEBUG] 解析提取数据时出错:", e);
+      }
+    }
+    
+    // 清理AI总结数据
+    let cleanedCount = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      // 检查是否是AI总结数据的key
+      if (key && key.startsWith("aiSummary_")) {
+        try {
+          const summaryDataStr = localStorage.getItem(key);
+          if (summaryDataStr) {
+            const summaryData = JSON.parse(summaryDataStr);
+            if (summaryData.createdAt) {
+              const createdTime = new Date(summaryData.createdAt).getTime();
+              if (createdTime < cutoffTime) {
+                console.log("[DEBUG] 删除过期的AI总结数据:", key);
+                localStorage.removeItem(key);
+                cleanedCount++;
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[DEBUG] 解析AI总结数据时出错:", e, "key:", key);
+        }
+      }
+    }
+    
+    console.log("[DEBUG] 清理完成，删除了", cleanedCount, "条AI总结数据");
+  }
+
   // 保存提取的数据
   function saveExtractedData(data) {
+    // 在保存新数据前先清理过期数据
+    cleanExpiredData();
+    
     // 只保存必要的数据，避免存储过大
     const dataToSave = {
       meta: data.meta,
@@ -1154,6 +1225,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 保存AI总结到localStorage
   function saveAISummary(url, content, summaryType) {
+    // 在保存新数据前先清理过期数据
+    cleanExpiredData();
+    
     const summaryData = {
       content: content,
       summaryType: summaryType,
