@@ -97,7 +97,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
   chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    console.log("[DEBUG] 检测到tab更新事件，tabId:", tabId, "status:", changeInfo.status, "active:", tab.active, "url:", tab.url);
+    console.log(
+      "[DEBUG] 检测到tab更新事件，tabId:",
+      tabId,
+      "status:",
+      changeInfo.status,
+      "active:",
+      tab.active,
+      "url:",
+      tab.url
+    );
     // 只在页面加载完成时更新
     if (changeInfo.status === "complete" && tab.active) {
       refreshDataForNewTab();
@@ -164,17 +173,41 @@ document.addEventListener("DOMContentLoaded", function () {
       document.documentElement.style.setProperty("--light-color", "#212529");
       document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
       document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
-      document.documentElement.style.setProperty("--section-content-bg", "#3d3d3d");
+      document.documentElement.style.setProperty(
+        "--section-content-bg",
+        "#3d3d3d"
+      );
       document.documentElement.style.setProperty("--border-color", "#444");
       document.documentElement.style.setProperty("--tab-bg", "#2d2d2d");
-      document.documentElement.style.setProperty("--section-title-color", "#8b9cff");
+      document.documentElement.style.setProperty(
+        "--section-title-color",
+        "#8b9cff"
+      );
       document.documentElement.style.setProperty("--tab-text-color", "#ffffff");
-      document.documentElement.style.setProperty("--markdown-bg-light", "#2d2d2d");
-      document.documentElement.style.setProperty("--markdown-bg-dark", "#1a1a1a");
-      document.documentElement.style.setProperty("--markdown-border-light", "#555");
-      document.documentElement.style.setProperty("--markdown-border-dark", "#666");
-      document.documentElement.style.setProperty("--markdown-text-light", "#ccc");
-      document.documentElement.style.setProperty("--markdown-text-dark", "#aaa");
+      document.documentElement.style.setProperty(
+        "--markdown-bg-light",
+        "#2d2d2d"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-bg-dark",
+        "#1a1a1a"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-border-light",
+        "#555"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-border-dark",
+        "#666"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-text-light",
+        "#ccc"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-text-dark",
+        "#aaa"
+      );
     }
   }
 
@@ -245,88 +278,142 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("暗色模式切换开始");
     const isDarkMode = document.getElementById("dark-mode").checked;
     console.log("暗色模式状态:", isDarkMode);
-    
+
     if (isDarkMode) {
       document.documentElement.style.setProperty("--light-color", "#212529");
       document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
       document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
-      document.documentElement.style.setProperty("--section-content-bg", "#3d3d3d");
+      document.documentElement.style.setProperty(
+        "--section-content-bg",
+        "#3d3d3d"
+      );
       document.documentElement.style.setProperty("--border-color", "#444");
       document.documentElement.style.setProperty("--tab-bg", "#2d2d2d");
-      document.documentElement.style.setProperty("--section-title-color", "#8b9cff");
+      document.documentElement.style.setProperty(
+        "--section-title-color",
+        "#8b9cff"
+      );
       document.documentElement.style.setProperty("--tab-text-color", "#ffffff");
-      document.documentElement.style.setProperty("--markdown-bg-light", "#2d2d2d");
-      document.documentElement.style.setProperty("--markdown-bg-dark", "#1a1a1a");
-      document.documentElement.style.setProperty("--markdown-border-light", "#555");
-      document.documentElement.style.setProperty("--markdown-border-dark", "#666");
-      document.documentElement.style.setProperty("--markdown-text-light", "#ccc");
-      document.documentElement.style.setProperty("--markdown-text-dark", "#aaa");
+      document.documentElement.style.setProperty(
+        "--markdown-bg-light",
+        "#2d2d2d"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-bg-dark",
+        "#1a1a1a"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-border-light",
+        "#555"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-border-dark",
+        "#666"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-text-light",
+        "#ccc"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-text-dark",
+        "#aaa"
+      );
       console.log("设置暗色模式CSS变量");
     } else {
       document.documentElement.style.setProperty("--light-color", "#f8f9fa");
       document.documentElement.style.setProperty("--dark-color", "#212529");
       document.documentElement.style.setProperty("--section-bg", "white");
-      document.documentElement.style.setProperty("--section-content-bg", "#f9f9f9");
+      document.documentElement.style.setProperty(
+        "--section-content-bg",
+        "#f9f9f9"
+      );
       document.documentElement.style.setProperty("--border-color", "#eee");
       document.documentElement.style.setProperty("--tab-bg", "white");
-      document.documentElement.style.setProperty("--section-title-color", "var(--secondary-color)");
-      document.documentElement.style.setProperty("--tab-text-color", "var(--dark-color)");
-      document.documentElement.style.setProperty("--markdown-bg-light", "#f0f0f0");
-      document.documentElement.style.setProperty("--markdown-bg-dark", "#e0e0e0");
-      document.documentElement.style.setProperty("--markdown-border-light", "#ddd");
-      document.documentElement.style.setProperty("--markdown-border-dark", "#ccc");
-      document.documentElement.style.setProperty("--markdown-text-light", "#666");
-      document.documentElement.style.setProperty("--markdown-text-dark", "#555");
+      document.documentElement.style.setProperty(
+        "--section-title-color",
+        "var(--secondary-color)"
+      );
+      document.documentElement.style.setProperty(
+        "--tab-text-color",
+        "var(--dark-color)"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-bg-light",
+        "#f0f0f0"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-bg-dark",
+        "#e0e0e0"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-border-light",
+        "#ddd"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-border-dark",
+        "#ccc"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-text-light",
+        "#666"
+      );
+      document.documentElement.style.setProperty(
+        "--markdown-text-dark",
+        "#555"
+      );
       console.log("设置亮色模式CSS变量");
     }
-    
+
     // 检查section元素的背景色
-    const sections = document.querySelectorAll('.section');
+    const sections = document.querySelectorAll(".section");
     console.log("找到section元素数量:", sections.length);
     sections.forEach((section, index) => {
       const computedStyle = window.getComputedStyle(section);
       console.log(`Section ${index} 背景色:`, computedStyle.backgroundColor);
     });
-    
+
     // 检查section-content元素的背景色
-    const sectionContents = document.querySelectorAll('.section-content');
+    const sectionContents = document.querySelectorAll(".section-content");
     console.log("找到section-content元素数量:", sectionContents.length);
     sectionContents.forEach((content, index) => {
       const computedStyle = window.getComputedStyle(content);
-      console.log(`Section-content ${index} 背景色:`, computedStyle.backgroundColor);
+      console.log(
+        `Section-content ${index} 背景色:`,
+        computedStyle.backgroundColor
+      );
     });
-    
+
     // 检查section-title元素的颜色
-    const sectionTitles = document.querySelectorAll('.section-title');
+    const sectionTitles = document.querySelectorAll(".section-title");
     console.log("找到section-title元素数量:", sectionTitles.length);
     sectionTitles.forEach((title, index) => {
       const computedStyle = window.getComputedStyle(title);
       console.log(`Section-title ${index} 颜色:`, computedStyle.color);
     });
-    
+
     // 检查tab元素的颜色
-    const tabs = document.querySelectorAll('.tab');
+    const tabs = document.querySelectorAll(".tab");
     console.log("找到tab元素数量:", tabs.length);
     tabs.forEach((tab, index) => {
       const computedStyle = window.getComputedStyle(tab);
       console.log(`Tab ${index} 颜色:`, computedStyle.color);
     });
-    
+
     // 检查markdown code元素的背景色
-    const codeElements = document.querySelectorAll('#streaming-content code');
+    const codeElements = document.querySelectorAll("#streaming-content code");
     console.log("找到code元素数量:", codeElements.length);
     codeElements.forEach((code, index) => {
       const computedStyle = window.getComputedStyle(code);
       console.log(`Code ${index} 背景色:`, computedStyle.backgroundColor);
     });
-    
+
     console.log("暗色模式切换完成");
   }
 
   // 提取数据函数
   function extractData() {
     console.log("[DEBUG] extractData() 函数被调用");
-    
+
     // 获取选中的提取选项
     const options = {
       html: document.getElementById("extract-html").checked,
@@ -347,24 +434,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       console.log("[DEBUG] 当前tab信息:", tabs[0]);
-      
+
       // 检查tab是否存在且URL是否有效
       if (!tabs[0] || !tabs[0].url) {
         console.log("[DEBUG] 无法获取当前页面URL，停止提取");
         return;
       }
-      
+
       const currentUrl = tabs[0].url;
       console.log("[DEBUG] 当前页面URL:", currentUrl);
-      console.log("[DEBUG] URL协议:", currentUrl.split(':')[0]);
-      
+      console.log("[DEBUG] URL协议:", currentUrl.split(":")[0]);
+
       // 检查URL是否为http或https协议
-      const urlProtocol = currentUrl.split(':')[0].toLowerCase();
-      if (urlProtocol !== 'http' && urlProtocol !== 'https') {
+      const urlProtocol = currentUrl.split(":")[0].toLowerCase();
+      if (urlProtocol !== "http" && urlProtocol !== "https") {
         console.log("[DEBUG] 非http/https页面，停止提取");
         return;
       }
-      
+
       // 如果通过了所有检查，则执行提取
       chrome.scripting.executeScript(
         {
@@ -390,7 +477,10 @@ document.addEventListener("DOMContentLoaded", function () {
             saveExtractedData(extractedData);
           } else if (chrome.runtime.lastError) {
             console.error("[DEBUG] 提取错误:", chrome.runtime.lastError);
-            console.error("[DEBUG] 错误信息:", chrome.runtime.lastError.message);
+            console.error(
+              "[DEBUG] 错误信息:",
+              chrome.runtime.lastError.message
+            );
             alert("提取失败: " + chrome.runtime.lastError.message);
           }
         }
@@ -970,7 +1060,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     saveAISummary(url, accumulatedContent, summaryType);
 
                     // 添加保存指示器到独立的状态区域
-                    const statusElement = document.getElementById("ai-summary-status");
+                    const statusElement =
+                      document.getElementById("ai-summary-status");
                     statusElement.style.display = "block";
                     statusElement.innerHTML = `
                       <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px;">已保存</span>
@@ -1030,7 +1121,7 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("没有可复制的总结内容");
       return;
     }
-    
+
     const summaryText = streamingContent.textContent;
 
     if (
@@ -1084,7 +1175,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // 使用URL和总结类型作为key清除AI总结缓存
     const key = `aiSummary_${url}_${summaryType}`;
     localStorage.removeItem(key);
-    
+
     // 隐藏状态区域
     const statusElement = document.getElementById("ai-summary-status");
     statusElement.style.display = "none";
@@ -1144,7 +1235,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // 如果没有对应类型的总结数据，隐藏AI总结结果区域
           document.getElementById("ai-status-section").style.display = "none";
           document.getElementById("ai-summary-result").innerHTML = `
-            <div style="text-align: center; color: #666; padding: 20px;">
+            <div style="text-align: center; color: #666; padding: 3px;">
               点击"AI总结"按钮开始生成网页内容总结
             </div>
           `;
@@ -1218,13 +1309,15 @@ document.addEventListener("DOMContentLoaded", function () {
   // 当切换到新的tab或URL变化时刷新数据
   function refreshDataForNewTab() {
     console.log("[DEBUG] refreshDataForNewTab() 函数被调用");
-    
+
     // 立即清空当前panel数据
     clearPanelData();
 
     // 延迟执行以确保新页面已完全加载
     setTimeout(() => {
-      console.log("[DEBUG] 在refreshDataForNewTab的setTimeout中调用extractData()");
+      console.log(
+        "[DEBUG] 在refreshDataForNewTab的setTimeout中调用extractData()"
+      );
       // 提取新页面的数据
       extractData();
 
