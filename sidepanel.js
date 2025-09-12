@@ -173,6 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 应用暗色模式
     if (localStorage.getItem("darkMode") === "true") {
+      document.documentElement.setAttribute("data-theme", "dark");
       document.documentElement.style.setProperty("--light-color", "#212529");
       document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
       document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
@@ -211,6 +212,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "--markdown-text-dark",
         "#aaa"
       );
+    } else {
+      document.documentElement.removeAttribute("data-theme");
     }
   }
 
@@ -283,6 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("暗色模式状态:", isDarkMode);
 
     if (isDarkMode) {
+      document.documentElement.setAttribute("data-theme", "dark");
       document.documentElement.style.setProperty("--light-color", "#212529");
       document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
       document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
@@ -323,6 +327,7 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       console.log("设置暗色模式CSS变量");
     } else {
+      document.documentElement.removeAttribute("data-theme");
       document.documentElement.style.setProperty("--light-color", "#f8f9fa");
       document.documentElement.style.setProperty("--dark-color", "#212529");
       document.documentElement.style.setProperty("--section-bg", "white");

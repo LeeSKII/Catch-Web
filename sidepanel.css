@@ -395,7 +395,7 @@ input:checked + .slider:before {
 #streaming-content h4,
 #streaming-content h5,
 #streaming-content h6 {
-  color: var(--secondary-color);
+  color: var(--section-title-color);
   margin-top: 4px;
   margin-bottom: 2px;
   font-size: 1.05em;
@@ -477,4 +477,45 @@ input:checked + .slider:before {
 #streaming-content th {
   background-color: var(--markdown-bg-light);
   font-weight: bold;
+}
+
+/* 暗色模式下的Markdown样式 */
+html[data-theme="dark"] #streaming-content blockquote,
+body[data-theme="dark"] #streaming-content blockquote {
+  color: var(--markdown-text-dark);
+}
+
+html[data-theme="dark"] #streaming-content code,
+body[data-theme="dark"] #streaming-content code {
+  background-color: var(--markdown-bg-dark);
+  color: var(--markdown-text-dark);
+}
+
+html[data-theme="dark"] #streaming-content pre,
+body[data-theme="dark"] #streaming-content pre {
+  background-color: var(--markdown-bg-dark);
+  color: var(--markdown-text-dark);
+}
+
+html[data-theme="dark"] #streaming-content hr,
+body[data-theme="dark"] #streaming-content hr {
+  border-top: 1px solid var(--markdown-border-dark);
+}
+
+html[data-theme="dark"] #streaming-content th,
+body[data-theme="dark"] #streaming-content th,
+html[data-theme="dark"] #streaming-content td,
+body[data-theme="dark"] #streaming-content td {
+  border: 1px solid var(--markdown-border-dark);
+}
+
+html[data-theme="dark"] #streaming-content th,
+body[data-theme="dark"] #streaming-content th {
+  background-color: var(--markdown-bg-dark);
+  color: var(--markdown-text-dark);
+}
+
+html[data-theme="dark"] #streaming-content td,
+body[data-theme="dark"] #streaming-content td {
+  color: var(--markdown-text-dark);
 }
