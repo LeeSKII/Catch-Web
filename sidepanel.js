@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("change", toggleDarkMode);
 
   // 默认自动提取
+  console.log("[DEBUG] 开始默认自动提取");
   extractData();
 
   // 加载当前页面的AI总结
@@ -89,12 +90,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 监听浏览器tab切换事件
   chrome.tabs.onActivated.addListener(function (activeInfo) {
+    console.log("[DEBUG] 检测到tab切换事件，tabId:", activeInfo.tabId);
     // 当用户切换到不同的tab时，自动执行数据提取和AI总结加载
     refreshDataForNewTab();
   });
 
   // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
   chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    console.log("[DEBUG] 检测到tab更新事件，tabId:", tabId, "status:", changeInfo.status, "active:", tab.active, "url:", tab.url);
     // 只在页面加载完成时更新
     if (changeInfo.status === "complete" && tab.active) {
       refreshDataForNewTab();
@@ -322,6 +325,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 提取数据函数
   function extractData() {
+    console.log("[DEBUG] extractData() 函数被调用");
+    
     // 获取选中的提取选项
     const options = {
       html: document.getElementById("extract-html").checked,
@@ -341,6 +346,26 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      console.log("[DEBUG] 当前tab信息:", tabs[0]);
+      
+      // 检查tab是否存在且URL是否有效
+      if (!tabs[0] || !tabs[0].url) {
+        console.log("[DEBUG] 无法获取当前页面URL，停止提取");
+        return;
+      }
+      
+      const currentUrl = tabs[0].url;
+      console.log("[DEBUG] 当前页面URL:", currentUrl);
+      console.log("[DEBUG] URL协议:", currentUrl.split(':')[0]);
+      
+      // 检查URL是否为http或https协议
+      const urlProtocol = currentUrl.split(':')[0].toLowerCase();
+      if (urlProtocol !== 'http' && urlProtocol !== 'https') {
+        console.log("[DEBUG] 非http/https页面，停止提取");
+        return;
+      }
+      
+      // 如果通过了所有检查，则执行提取
       chrome.scripting.executeScript(
         {
           target: { tabId: tabs[0].id },
@@ -349,6 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         (results) => {
           if (results && results[0]) {
+            console.log("[DEBUG] 提取成功");
             extractedData = results[0].result;
 
             // 显示统计信息
@@ -363,7 +389,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // 保存提取的数据
             saveExtractedData(extractedData);
           } else if (chrome.runtime.lastError) {
-            console.error("提取错误:", chrome.runtime.lastError);
+            console.error("[DEBUG] 提取错误:", chrome.runtime.lastError);
+            console.error("[DEBUG] 错误信息:", chrome.runtime.lastError.message);
             alert("提取失败: " + chrome.runtime.lastError.message);
           }
         }
@@ -1190,11 +1217,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 当切换到新的tab或URL变化时刷新数据
   function refreshDataForNewTab() {
+    console.log("[DEBUG] refreshDataForNewTab() 函数被调用");
+    
     // 立即清空当前panel数据
     clearPanelData();
 
     // 延迟执行以确保新页面已完全加载
     setTimeout(() => {
+      console.log("[DEBUG] 在refreshDataForNewTab的setTimeout中调用extractData()");
       // 提取新页面的数据
       extractData();
 
