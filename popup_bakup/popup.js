@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
           saveExtractedData(extractedData);
         } else if (chrome.runtime.lastError) {
           console.error('提取错误:', chrome.runtime.lastError);
-          alert('提取失败: ' + chrome.runtime.lastError.message);
+          // 不再显示alert，只在console中记录错误
         }
       });
     });

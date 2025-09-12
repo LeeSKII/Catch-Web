@@ -481,7 +481,7 @@ document.addEventListener("DOMContentLoaded", function () {
               "[DEBUG] 错误信息:",
               chrome.runtime.lastError.message
             );
-            alert("提取失败: " + chrome.runtime.lastError.message);
+            // 不再显示alert，只在console中记录错误
           }
         }
       );
