@@ -88,15 +88,15 @@ document.addEventListener("DOMContentLoaded", function () {
   loadAISummaryForCurrentTab();
 
   // 监听浏览器tab切换事件
-  chrome.tabs.onActivated.addListener(function(activeInfo) {
+  chrome.tabs.onActivated.addListener(function (activeInfo) {
     // 当用户切换到不同的tab时，自动执行数据提取和AI总结加载
     refreshDataForNewTab();
   });
 
   // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
-  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     // 只在页面加载完成时更新
-    if (changeInfo.status === 'complete' && tab.active) {
+    if (changeInfo.status === "complete" && tab.active) {
       refreshDataForNewTab();
     }
   });
@@ -147,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function () {
       localStorage.getItem("extractStyles") === "true";
     document.getElementById("extract-scripts").checked =
       localStorage.getItem("extractScripts") === "true";
-    document.getElementById("extract-article").checked =
-      localStorage.getItem("extractArticle") !== "false";
 
     // 加载OpenAI API设置
     document.getElementById("openai-api-key").value =
@@ -208,10 +206,6 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem(
       "extractScripts",
       document.getElementById("extract-scripts").checked
-    );
-    localStorage.setItem(
-      "extractArticle",
-      document.getElementById("extract-article").checked
     );
 
     // 保存OpenAI API设置
@@ -719,66 +713,79 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 生成AI总结
   function generateAISummary() {
-    // 检查是否已提取数据
-    if (Object.keys(extractedData).length === 0) {
-      alert("请先提取网页数据！");
-      switchTab("settings");
+    // 防止重复点击
+    const aiButton = document.getElementById("ai-summary-btn");
+    if (aiButton.disabled) {
       return;
     }
 
-    // 检查API密钥
-    const apiKey = localStorage.getItem("openaiApiKey");
-    if (!apiKey) {
-      alert("请先在设置中配置OpenAI API密钥！");
-      switchTab("settings");
-      return;
+    // 禁用按钮防止重复请求
+    aiButton.disabled = true;
+    const originalButtonText = aiButton.innerHTML;
+    aiButton.innerHTML = '<span class="icon">🤖</span> 生成中...';
+
+    try {
+      const content = extractedData.text || "";
+      if (!content) {
+        alert("未识别到任何需要总结的数据，请检查是否提取到网页数据！");
+        return;
+      }
+
+      // 检查是否已提取数据
+      if (Object.keys(extractedData).length === 0) {
+        alert("请先提取网页数据！");
+        switchTab("settings");
+        return;
+      }
+
+      // 检查API密钥
+      const apiKey = localStorage.getItem("openaiApiKey");
+      if (!apiKey) {
+        alert("请先在设置中配置OpenAI API密钥！");
+        switchTab("settings");
+        return;
+      }
+
+      // 获取总结类型
+      const summaryType = document.querySelector(
+        'input[name="summary-type"]:checked'
+      ).value;
+
+      // 显示加载状态
+      document.getElementById("ai-status-section").style.display = "block";
+      document.getElementById("ai-summary-result").innerHTML =
+        '<div style="text-align: center; color: #666; padding: 20px;">正在生成AI总结...</div>';
+
+      // 根据总结类型准备内容
+      let system_prompt = "";
+
+      switch (summaryType) {
+        case "full":
+          system_prompt =
+            "请对用户提供的内容进行总结，要求简洁明了，突出重点，禁止遗漏任何关键和重要信息，使用markdown格式回复，do not warp the text in quotes ```markdown\n...\n```，回复语言：简体中文。";
+          break;
+        case "keyinfo":
+          system_prompt =
+            "请从以下网页内容中提取关键信息，包括：主要主题、重要数据、关键人物、时间地点等核心信息，使用markdown格式回复，do not warp the text in quotes ```markdown\n...\n```，回复语言：简体中文。";
+          break;
+      }
+
+      // 调用OpenAI API
+      callOpenAI(apiKey, system_prompt, content).finally(() => {
+        // 请求完成后恢复按钮状态
+        aiButton.disabled = false;
+        aiButton.innerHTML = originalButtonText;
+      });
+    } catch (error) {
+      console.error("生成AI总结时出错:", error);
+      // 发生错误时恢复按钮状态
+      aiButton.disabled = false;
+      aiButton.innerHTML = originalButtonText;
     }
-
-    // 获取总结类型
-    const summaryType = document.querySelector(
-      'input[name="summary-type"]:checked'
-    ).value;
-
-    // 显示加载状态
-    document.getElementById("ai-status-section").style.display = "block";
-    document.getElementById("ai-summary-result").innerHTML =
-      '<div style="text-align: center; color: #666; padding: 20px;">正在生成AI总结...</div>';
-
-    // 根据总结类型准备内容
-    let content = "";
-    let prompt = "";
-
-    switch (summaryType) {
-      case "full":
-        content = extractedData.text || "";
-        prompt = "请对以下网页内容进行总结，要求简洁明了，突出重点：\n\n";
-        break;
-      case "article":
-        content = extractedData.article || extractedData.text || "";
-        prompt =
-          "请对以下文章内容进行总结，要求简洁明了，突出文章的主要观点和结论：\n\n";
-        break;
-      case "keyinfo":
-        content = extractedData.text || "";
-        prompt =
-          "请从以下网页内容中提取关键信息，包括：主要主题、重要数据、关键人物、时间地点等核心信息：\n\n";
-        break;
-    }
-
-    // 限制内容长度，避免超过API限制
-    if (content.length > 4000) {
-      content = content.substring(0, 4000) + "...[内容已截断]";
-    }
-
-    // 构建完整的请求内容
-    const fullPrompt = prompt + content;
-
-    // 调用OpenAI API
-    callOpenAI(apiKey, fullPrompt);
   }
 
   // 调用OpenAI API
-  async function callOpenAI(apiKey, prompt) {
+  async function callOpenAI(apiKey, system_prompt, input) {
     const model = localStorage.getItem("aiModel") || "deepseek-chat";
     const baseUrl =
       localStorage.getItem("openaiBaseUrl") || "https://api.deepseek.com";
@@ -794,9 +801,10 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({
           model: model,
           messages: [
+            { role: "system", content: system_prompt },
             {
               role: "user",
-              content: prompt,
+              content: input,
             },
           ],
           stream: true,
@@ -852,11 +860,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // 添加保存指示器
                     document.getElementById("ai-summary-result").innerHTML += `
-                    <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
-                      <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px;">已保存</span>
-                      <span style="margin-left: 10px;">生成时间: ${new Date().toLocaleString()}</span>
-                    </div>
-                  `;
+                      <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                        <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px;">已保存</span>
+                        <span style="margin-left: 10px;">生成时间: ${new Date().toLocaleString()}</span>
+                      </div>
+                    `;
                   }
                 }
               );
@@ -885,12 +893,12 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("OpenAI API调用失败:", error);
       document.getElementById("ai-status-section").style.display = "none";
       document.getElementById("ai-summary-result").innerHTML = `
-        <div style="color: #f72585; padding: 20px; text-align: center;">
-          <strong>AI总结失败</strong><br>
-          ${error.message}<br>
+          <div style="color: #f72585; padding: 20px; text-align: center;">
+            <strong>AI总结失败</strong><br>
+            ${error.message}<br>
           <small>请检查API密钥是否正确，或稍后重试</small>
-        </div>
-      `;
+          </div>
+        `;
     }
   }
 
@@ -987,6 +995,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (aiSummarySection) {
       aiSummarySection.style.display = "block";
     }
+
+    // 显示清除缓存按钮
+    document.getElementById("clear-cache-btn").style.display = "inline-block";
   }
 
   // 获取当前标签页URL并加载AI总结
@@ -1002,10 +1013,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (summaryData) {
           displayCachedAISummary(summaryData);
+          // 显示清除缓存按钮
+          document.getElementById("clear-cache-btn").style.display =
+            "inline-block";
         } else {
           // 如果没有对应类型的总结数据，隐藏AI总结结果区域
           document.getElementById("ai-status-section").style.display = "none";
-          document.getElementById("ai-summary-result").innerHTML = "";
+          document.getElementById("ai-summary-result").innerHTML = `
+            <div style="text-align: center; color: #666; padding: 20px;">
+              点击"AI总结"按钮开始生成网页内容总结
+            </div>
+          `;
           // 隐藏整个AI总结内容区域
           const aiSummarySection = document.querySelector(
             "#ai-tab .section:nth-child(2)"
@@ -1013,6 +1031,8 @@ document.addEventListener("DOMContentLoaded", function () {
           if (aiSummarySection) {
             aiSummarySection.style.display = "none";
           }
+          // 隐藏清除缓存按钮
+          document.getElementById("clear-cache-btn").style.display = "none";
         }
       }
     });
@@ -1045,7 +1065,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function clearPanelData() {
     // 清空提取的数据
     extractedData = {};
-    
+
     // 清空显示的内容
     document.getElementById("page-info-result").innerHTML = "";
     document.getElementById("images-result").innerHTML = "";
@@ -1053,7 +1073,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("images-count").textContent = "0";
     document.getElementById("links-count").textContent = "0";
     document.getElementById("words-count").textContent = "0";
-    
+
     // 清空AI总结区域
     document.getElementById("ai-summary-result").innerHTML = `
       <div style="text-align: center; color: #666; padding: 20px;">
@@ -1061,7 +1081,7 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     `;
     document.getElementById("ai-status-section").style.display = "none";
-    
+
     // 隐藏AI总结内容区域
     const aiSummarySection = document.querySelector(
       "#ai-tab .section:nth-child(2)"
@@ -1075,12 +1095,12 @@ document.addEventListener("DOMContentLoaded", function () {
   function refreshDataForNewTab() {
     // 立即清空当前panel数据
     clearPanelData();
-    
+
     // 延迟执行以确保新页面已完全加载
     setTimeout(() => {
       // 提取新页面的数据
       extractData();
-      
+
       // 加载新页面的AI总结
       loadAISummaryForCurrentTab();
     }, 500);
