@@ -762,11 +762,11 @@ document.addEventListener("DOMContentLoaded", function () {
       switch (summaryType) {
         case "full":
           system_prompt =
-            "请对用户提供的内容进行总结，要求简洁明了，突出重点，禁止遗漏任何关键和重要信息，使用markdown格式回复，do not warp the text in quotes ```markdown\n...\n```，回复语言：简体中文。";
+            "对用户提供的内容进行总结，要求简洁明了，突出重点，禁止遗漏任何关键和重要信息，回复语言：简体中文。";
           break;
         case "keyinfo":
           system_prompt =
-            "请从以下网页内容中提取关键信息，包括：主要主题、重要数据、关键人物、时间地点等核心信息，使用markdown格式回复，do not warp the text in quotes ```markdown\n...\n```，回复语言：简体中文。";
+            "对用户提供的内容提取关键信息，包括：主要主题、重要数据、关键人物、时间地点等核心信息，回复语言：简体中文。";
           break;
       }
 
