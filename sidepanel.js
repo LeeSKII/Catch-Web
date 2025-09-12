@@ -470,8 +470,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // 显示提取结果
             displayResults(extractedData);
 
-            // 切换到结果标签页
-            switchTab("results");
+            // 不再自动切换到结果标签页，让AI总结逻辑决定最终的tab位置
+            // switchTab("results");
 
             // 保存提取的数据
             saveExtractedData(extractedData);
@@ -928,13 +928,19 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       const content = extractedData.text || "";
       if (!content) {
-        alert("未识别到任何需要总结的数据，请检查是否提取到网页数据！");
+        console.log("[DEBUG] 未识别到任何需要总结的数据");
+        // 恢复按钮状态
+        aiButton.disabled = false;
+        aiButton.innerHTML = originalButtonText;
         return;
       }
 
       // 检查是否已提取数据
       if (Object.keys(extractedData).length === 0) {
-        alert("请先提取网页数据！");
+        console.log("[DEBUG] 请先提取网页数据");
+        // 恢复按钮状态
+        aiButton.disabled = false;
+        aiButton.innerHTML = originalButtonText;
         switchTab("settings");
         return;
       }
@@ -942,7 +948,10 @@ document.addEventListener("DOMContentLoaded", function () {
       // 检查API密钥
       const apiKey = localStorage.getItem("openaiApiKey");
       if (!apiKey) {
-        alert("请先在设置中配置OpenAI API密钥！");
+        console.log("[DEBUG] 请先在设置中配置OpenAI API密钥");
+        // 恢复按钮状态
+        aiButton.disabled = false;
+        aiButton.innerHTML = originalButtonText;
         switchTab("settings");
         return;
       }
@@ -1217,6 +1226,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 获取当前标签页URL并加载AI总结
   function loadAISummaryForCurrentTab() {
+    // 检查当前所在的tab
+    const currentActiveTab = document.querySelector(".tab.active");
+    const currentTabName = currentActiveTab ? currentActiveTab.getAttribute("data-tab") : "unknown";
+    
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs && tabs[0]) {
         const url = tabs[0].url;
@@ -1224,13 +1237,22 @@ document.addEventListener("DOMContentLoaded", function () {
         const summaryType = document.querySelector(
           'input[name="summary-type"]:checked'
         ).value;
+        
         const summaryData = loadAISummary(url, summaryType);
+
+        // 检查是否存在任何类型的AI总结
+        const fullSummaryData = loadAISummary(url, "full");
+        const keySummaryData = loadAISummary(url, "keyinfo");
+        const hasAnySummary = fullSummaryData || keySummaryData;
 
         if (summaryData) {
           displayCachedAISummary(summaryData);
           // 显示清除缓存按钮
           document.getElementById("clear-cache-btn").style.display =
             "inline-block";
+          
+          // 如果存在AI总结，自动切换到AI tab
+          switchTab("ai");
         } else {
           // 如果没有对应类型的总结数据，隐藏AI总结结果区域
           document.getElementById("ai-status-section").style.display = "none";
@@ -1248,6 +1270,45 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           // 隐藏清除缓存按钮
           document.getElementById("clear-cache-btn").style.display = "none";
+        }
+
+        // 如果存在任何类型的AI总结，但当前选中的类型没有数据，
+        // 只有在用户不在AI tab中操作时才自动切换到有数据的总结类型
+        if (hasAnySummary && !summaryData && currentTabName !== "ai") {
+          if (fullSummaryData) {
+            document.querySelector('input[name="summary-type"][value="full"]').checked = true;
+            displayCachedAISummary(fullSummaryData);
+            document.getElementById("clear-cache-btn").style.display = "inline-block";
+          } else if (keySummaryData) {
+            document.querySelector('input[name="summary-type"][value="keyinfo"]').checked = true;
+            displayCachedAISummary(keySummaryData);
+            document.getElementById("clear-cache-btn").style.display = "inline-block";
+          }
+          // 自动切换到AI tab
+          switchTab("ai");
+        } else if (!hasAnySummary) {
+          // 如果没有任何AI总结，只有在非AI tab时才切换到results tab
+          if (currentTabName !== "ai") {
+            switchTab("results");
+          } else {
+            // 用户正在AI tab中操作，保持在AI tab中
+            // 确保AI tab的UI状态正确
+            document.getElementById("ai-status-section").style.display = "none";
+            document.getElementById("ai-summary-result").innerHTML = `
+              <div style="text-align: center; color: #666; padding: 20px;">
+                点击"AI总结"按钮开始生成网页内容总结
+              </div>
+            `;
+            // 隐藏整个AI总结内容区域
+            const aiSummarySection = document.querySelector(
+              "#ai-tab .section:nth-child(2)"
+            );
+            if (aiSummarySection) {
+              aiSummarySection.style.display = "none";
+            }
+            // 隐藏清除缓存按钮
+            document.getElementById("clear-cache-btn").style.display = "none";
+          }
         }
       }
     });
