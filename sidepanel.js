@@ -160,6 +160,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (localStorage.getItem("darkMode") === "true") {
       document.documentElement.style.setProperty("--light-color", "#212529");
       document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
+      document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
+      document.documentElement.style.setProperty("--section-content-bg", "#3d3d3d");
+      document.documentElement.style.setProperty("--border-color", "#444");
+      document.documentElement.style.setProperty("--tab-bg", "#2d2d2d");
+      document.documentElement.style.setProperty("--section-title-color", "#8b9cff");
+      document.documentElement.style.setProperty("--tab-text-color", "#ffffff");
+      document.documentElement.style.setProperty("--markdown-bg-light", "#2d2d2d");
+      document.documentElement.style.setProperty("--markdown-bg-dark", "#1a1a1a");
+      document.documentElement.style.setProperty("--markdown-border-light", "#555");
+      document.documentElement.style.setProperty("--markdown-border-dark", "#666");
+      document.documentElement.style.setProperty("--markdown-text-light", "#ccc");
+      document.documentElement.style.setProperty("--markdown-text-dark", "#aaa");
     }
   }
 
@@ -227,13 +239,85 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 切换暗色模式
   function toggleDarkMode() {
-    if (document.getElementById("dark-mode").checked) {
+    console.log("暗色模式切换开始");
+    const isDarkMode = document.getElementById("dark-mode").checked;
+    console.log("暗色模式状态:", isDarkMode);
+    
+    if (isDarkMode) {
       document.documentElement.style.setProperty("--light-color", "#212529");
       document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
+      document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
+      document.documentElement.style.setProperty("--section-content-bg", "#3d3d3d");
+      document.documentElement.style.setProperty("--border-color", "#444");
+      document.documentElement.style.setProperty("--tab-bg", "#2d2d2d");
+      document.documentElement.style.setProperty("--section-title-color", "#8b9cff");
+      document.documentElement.style.setProperty("--tab-text-color", "#ffffff");
+      document.documentElement.style.setProperty("--markdown-bg-light", "#2d2d2d");
+      document.documentElement.style.setProperty("--markdown-bg-dark", "#1a1a1a");
+      document.documentElement.style.setProperty("--markdown-border-light", "#555");
+      document.documentElement.style.setProperty("--markdown-border-dark", "#666");
+      document.documentElement.style.setProperty("--markdown-text-light", "#ccc");
+      document.documentElement.style.setProperty("--markdown-text-dark", "#aaa");
+      console.log("设置暗色模式CSS变量");
     } else {
       document.documentElement.style.setProperty("--light-color", "#f8f9fa");
       document.documentElement.style.setProperty("--dark-color", "#212529");
+      document.documentElement.style.setProperty("--section-bg", "white");
+      document.documentElement.style.setProperty("--section-content-bg", "#f9f9f9");
+      document.documentElement.style.setProperty("--border-color", "#eee");
+      document.documentElement.style.setProperty("--tab-bg", "white");
+      document.documentElement.style.setProperty("--section-title-color", "var(--secondary-color)");
+      document.documentElement.style.setProperty("--tab-text-color", "var(--dark-color)");
+      document.documentElement.style.setProperty("--markdown-bg-light", "#f0f0f0");
+      document.documentElement.style.setProperty("--markdown-bg-dark", "#e0e0e0");
+      document.documentElement.style.setProperty("--markdown-border-light", "#ddd");
+      document.documentElement.style.setProperty("--markdown-border-dark", "#ccc");
+      document.documentElement.style.setProperty("--markdown-text-light", "#666");
+      document.documentElement.style.setProperty("--markdown-text-dark", "#555");
+      console.log("设置亮色模式CSS变量");
     }
+    
+    // 检查section元素的背景色
+    const sections = document.querySelectorAll('.section');
+    console.log("找到section元素数量:", sections.length);
+    sections.forEach((section, index) => {
+      const computedStyle = window.getComputedStyle(section);
+      console.log(`Section ${index} 背景色:`, computedStyle.backgroundColor);
+    });
+    
+    // 检查section-content元素的背景色
+    const sectionContents = document.querySelectorAll('.section-content');
+    console.log("找到section-content元素数量:", sectionContents.length);
+    sectionContents.forEach((content, index) => {
+      const computedStyle = window.getComputedStyle(content);
+      console.log(`Section-content ${index} 背景色:`, computedStyle.backgroundColor);
+    });
+    
+    // 检查section-title元素的颜色
+    const sectionTitles = document.querySelectorAll('.section-title');
+    console.log("找到section-title元素数量:", sectionTitles.length);
+    sectionTitles.forEach((title, index) => {
+      const computedStyle = window.getComputedStyle(title);
+      console.log(`Section-title ${index} 颜色:`, computedStyle.color);
+    });
+    
+    // 检查tab元素的颜色
+    const tabs = document.querySelectorAll('.tab');
+    console.log("找到tab元素数量:", tabs.length);
+    tabs.forEach((tab, index) => {
+      const computedStyle = window.getComputedStyle(tab);
+      console.log(`Tab ${index} 颜色:`, computedStyle.color);
+    });
+    
+    // 检查markdown code元素的背景色
+    const codeElements = document.querySelectorAll('#streaming-content code');
+    console.log("找到code元素数量:", codeElements.length);
+    codeElements.forEach((code, index) => {
+      const computedStyle = window.getComputedStyle(code);
+      console.log(`Code ${index} 背景色:`, computedStyle.backgroundColor);
+    });
+    
+    console.log("暗色模式切换完成");
   }
 
   // 提取数据函数
