@@ -942,12 +942,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     ).value;
                     saveAISummary(url, accumulatedContent, summaryType);
 
-                    // 添加保存指示器
-                    document.getElementById("ai-summary-result").innerHTML += `
-                      <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
-                        <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px;">已保存</span>
-                        <span style="margin-left: 10px;">生成时间: ${new Date().toLocaleString()}</span>
-                      </div>
+                    // 添加保存指示器到独立的状态区域
+                    const statusElement = document.getElementById("ai-summary-status");
+                    statusElement.style.display = "block";
+                    statusElement.innerHTML = `
+                      <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px;">已保存</span>
+                      <span style="margin-left: 10px;">生成时间: ${new Date().toLocaleString()}</span>
                     `;
                   }
                 }
@@ -998,8 +998,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 复制AI总结
   function copySummary() {
-    const summaryElement = document.getElementById("ai-summary-result");
-    const summaryText = summaryElement.textContent;
+    const streamingContent = document.getElementById("streaming-content");
+    if (!streamingContent) {
+      alert("没有可复制的总结内容");
+      return;
+    }
+    
+    const summaryText = streamingContent.textContent;
 
     if (
       !summaryText ||
@@ -1052,6 +1057,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // 使用URL和总结类型作为key清除AI总结缓存
     const key = `aiSummary_${url}_${summaryType}`;
     localStorage.removeItem(key);
+    
+    // 隐藏状态区域
+    const statusElement = document.getElementById("ai-summary-status");
+    statusElement.style.display = "none";
   }
 
   // 显示缓存的AI总结
@@ -1059,12 +1068,16 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ai-status-section").style.display = "none";
     document.getElementById("ai-summary-result").innerHTML = `
       <div id="streaming-content"></div>
-      <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
-        <span style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">缓存内容</span>
-        <span style="margin-left: 10px;">生成时间: ${new Date(
-          summaryData.createdAt
-        ).toLocaleString()}</span>
-      </div>
+    `;
+
+    // 在独立的状态区域显示缓存信息
+    const statusElement = document.getElementById("ai-summary-status");
+    statusElement.style.display = "block";
+    statusElement.innerHTML = `
+      <span style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">缓存内容</span>
+      <span style="margin-left: 10px;">生成时间: ${new Date(
+        summaryData.createdAt
+      ).toLocaleString()}</span>
     `;
 
     // 使用marked渲染markdown

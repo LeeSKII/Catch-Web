@@ -403,7 +403,7 @@ input:checked + .slider:before {
 
 #streaming-content p {
   margin-bottom: 3px;
-  line-height: 1.2;
+  line-height: 1.5;
 }
 
 #streaming-content ul,
