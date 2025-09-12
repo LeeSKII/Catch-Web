@@ -1,11 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
+  console.log("[DEBUG] DOM内容已加载，开始初始化");
+
   // 初始化变量
   let extractedData = {};
   let currentTab = "results";
 
   // 加载保存的设置
+  console.log("[DEBUG] 开始加载设置");
   loadSettings();
-  
+  console.log("[DEBUG] 设置加载完成");
+
   // 清理过期数据
   cleanExpiredData();
 
@@ -80,9 +84,14 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("link-filter").addEventListener("input", filterLinks);
 
   // 暗色模式切换
-  document
-    .getElementById("dark-mode")
-    .addEventListener("change", toggleDarkMode);
+  const darkModeToggle = document.getElementById("dark-mode");
+  console.log("[DEBUG] 暗色模式切换元素:", darkModeToggle);
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener("change", toggleDarkMode);
+    console.log("[DEBUG] 暗色模式切换事件监听器已添加");
+  } else {
+    console.error("[DEBUG] 未找到暗色模式切换元素");
+  }
 
   // 默认自动提取
   console.log("[DEBUG] 开始默认自动提取");
@@ -212,8 +221,22 @@ document.addEventListener("DOMContentLoaded", function () {
         "--markdown-text-dark",
         "#aaa"
       );
+      
+      // 修复：添加暗色模式下的按钮颜色变量（优化为更适合暗色主题的颜色）
+      document.documentElement.style.setProperty("--primary-color", "#6b8cff");
+      document.documentElement.style.setProperty("--secondary-color", "#5a4bd0");
+      document.documentElement.style.setProperty("--accent-color", "#9b4fd0");
+      document.documentElement.style.setProperty("--success-color", "#4db8d8");
+      document.documentElement.style.setProperty("--warning-color", "#e63946");
     } else {
       document.documentElement.removeAttribute("data-theme");
+      
+      // 修复：确保亮色模式下的按钮颜色变量正确设置
+      document.documentElement.style.setProperty("--primary-color", "#4361ee");
+      document.documentElement.style.setProperty("--secondary-color", "#3a0ca3");
+      document.documentElement.style.setProperty("--accent-color", "#7209b7");
+      document.documentElement.style.setProperty("--success-color", "#4cc9f0");
+      document.documentElement.style.setProperty("--warning-color", "#f72585");
     }
   }
 
@@ -285,6 +308,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const isDarkMode = document.getElementById("dark-mode").checked;
     console.log("暗色模式状态:", isDarkMode);
 
+    // 添加按钮样式调试日志
+    console.log("=== 按钮样式调试开始 ===");
+    
+    // 验证假设1：检查CSS变量值
+    console.log("=== 验证假设1：CSS变量值检查 ===");
+    const rootStyles = getComputedStyle(document.documentElement);
+    console.log("当前按钮颜色变量值:");
+    console.log(`  --primary-color: ${rootStyles.getPropertyValue("--primary-color")}`);
+    console.log(`  --accent-color: ${rootStyles.getPropertyValue("--accent-color")}`);
+    console.log(`  --success-color: ${rootStyles.getPropertyValue("--success-color")}`);
+    console.log(`  --warning-color: ${rootStyles.getPropertyValue("--warning-color")}`);
+    
+    // 验证假设2：检查filter属性影响
+    console.log("=== 验证假设2：filter属性影响检查 ===");
+
     if (isDarkMode) {
       document.documentElement.setAttribute("data-theme", "dark");
       document.documentElement.style.setProperty("--light-color", "#212529");
@@ -325,7 +363,15 @@ document.addEventListener("DOMContentLoaded", function () {
         "--markdown-text-dark",
         "#aaa"
       );
-      console.log("设置暗色模式CSS变量");
+      
+      // 修复：添加暗色模式下的按钮颜色变量（优化为更适合暗色主题的颜色）
+      document.documentElement.style.setProperty("--primary-color", "#6b8cff");
+      document.documentElement.style.setProperty("--secondary-color", "#5a4bd0");
+      document.documentElement.style.setProperty("--accent-color", "#9b4fd0");
+      document.documentElement.style.setProperty("--success-color", "#4db8d8");
+      document.documentElement.style.setProperty("--warning-color", "#e63946");
+      
+      console.log("设置暗色模式CSS变量（包括按钮颜色）");
     } else {
       document.documentElement.removeAttribute("data-theme");
       document.documentElement.style.setProperty("--light-color", "#f8f9fa");
@@ -369,7 +415,15 @@ document.addEventListener("DOMContentLoaded", function () {
         "--markdown-text-dark",
         "#555"
       );
-      console.log("设置亮色模式CSS变量");
+      
+      // 修复：恢复亮色模式下的按钮颜色变量
+      document.documentElement.style.setProperty("--primary-color", "#4361ee");
+      document.documentElement.style.setProperty("--secondary-color", "#3a0ca3");
+      document.documentElement.style.setProperty("--accent-color", "#7209b7");
+      document.documentElement.style.setProperty("--success-color", "#4cc9f0");
+      document.documentElement.style.setProperty("--warning-color", "#f72585");
+      
+      console.log("设置亮色模式CSS变量（包括按钮颜色）");
     }
 
     // 检查section元素的背景色
@@ -415,6 +469,75 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log(`Code ${index} 背景色:`, computedStyle.backgroundColor);
     });
 
+    // 检查按钮元素的样式
+    const buttons = document.querySelectorAll(".btn");
+    console.log("找到按钮元素数量:", buttons.length);
+    buttons.forEach((button, index) => {
+      const computedStyle = window.getComputedStyle(button);
+      console.log(`按钮 ${index} (${button.className}):`);
+      console.log(`  - 背景色: ${computedStyle.backgroundColor}`);
+      console.log(`  - 文字颜色: ${computedStyle.color}`);
+      console.log(`  - filter: ${computedStyle.filter}`);
+      console.log(
+        `  - 父元素data-theme: ${button.parentElement.getAttribute(
+          "data-theme"
+        )}`
+      );
+      console.log(
+        `  - html元素data-theme: ${document.documentElement.getAttribute(
+          "data-theme"
+        )}`
+      );
+      
+      // 验证假设2：详细检查filter属性
+      if (computedStyle.filter && computedStyle.filter !== 'none') {
+        console.log(`  - ⚠️  检测到filter属性: ${computedStyle.filter}`);
+        console.log(`  - 🔍 这可能是导致按钮颜色异常的原因`);
+      }
+      
+      // 验证假设1：检查按钮是否使用了正确的CSS变量
+      if (button.classList.contains('btn-primary')) {
+        console.log(`  - 🔍 btn-primary按钮，应该使用--primary-color变量`);
+        console.log(`  - 当前--primary-color值: ${rootStyles.getPropertyValue("--primary-color")}`);
+      }
+      if (button.classList.contains('btn-secondary')) {
+        console.log(`  - 🔍 btn-secondary按钮，应该使用--accent-color变量`);
+        console.log(`  - 当前--accent-color值: ${rootStyles.getPropertyValue("--accent-color")}`);
+      }
+      if (button.classList.contains('btn-success')) {
+        console.log(`  - 🔍 btn-success按钮，应该使用--success-color变量`);
+        console.log(`  - 当前--success-color值: ${rootStyles.getPropertyValue("--success-color")}`);
+      }
+      if (button.classList.contains('btn-warning')) {
+        console.log(`  - 🔍 btn-warning按钮，应该使用--warning-color变量`);
+        console.log(`  - 当前--warning-color值: ${rootStyles.getPropertyValue("--warning-color")}`);
+      }
+    });
+
+    // 检查CSS变量值
+    console.log("当前CSS变量值:");
+    console.log(
+      `  --primary-color: ${getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--primary-color")}`
+    );
+    console.log(
+      `  --accent-color: ${getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--accent-color")}`
+    );
+    console.log(
+      `  --success-color: ${getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--success-color")}`
+    );
+    console.log(
+      `  --warning-color: ${getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--warning-color")}`
+    );
+
+    console.log("=== 按钮样式调试结束 ===");
     console.log("暗色模式切换完成");
   }
 
@@ -906,21 +1029,24 @@ document.addEventListener("DOMContentLoaded", function () {
   // 清理过期数据
   function cleanExpiredData() {
     console.log("[DEBUG] 开始清理过期数据");
-    
+
     // 获取数据保留时间设置（天）
-    const retentionDays = parseInt(localStorage.getItem("dataRetention") || "7");
-    
+    const retentionDays = parseInt(
+      localStorage.getItem("dataRetention") || "7"
+    );
+
     // 如果设置为永久保留（0天），则不进行清理
     if (retentionDays === 0) {
       console.log("[DEBUG] 数据保留设置为永久，跳过清理");
       return;
     }
-    
+
     // 计算截止时间（毫秒）
-    const cutoffTime = new Date().getTime() - (retentionDays * 24 * 60 * 60 * 1000);
+    const cutoffTime =
+      new Date().getTime() - retentionDays * 24 * 60 * 60 * 1000;
     console.log("[DEBUG] 数据保留时间:", retentionDays, "天");
     console.log("[DEBUG] 截止时间戳:", cutoffTime);
-    
+
     // 清理提取的数据
     const extractedDataStr = localStorage.getItem("extractedData");
     if (extractedDataStr) {
@@ -939,7 +1065,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("[DEBUG] 解析提取数据时出错:", e);
       }
     }
-    
+
     // 清理AI总结数据
     let cleanedCount = 0;
     for (let i = 0; i < localStorage.length; i++) {
@@ -964,7 +1090,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     }
-    
+
     console.log("[DEBUG] 清理完成，删除了", cleanedCount, "条AI总结数据");
   }
 
@@ -972,7 +1098,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function saveExtractedData(data) {
     // 在保存新数据前先清理过期数据
     cleanExpiredData();
-    
+
     // 只保存必要的数据，避免存储过大
     const dataToSave = {
       meta: data.meta,
@@ -1232,7 +1358,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function saveAISummary(url, content, summaryType) {
     // 在保存新数据前先清理过期数据
     cleanExpiredData();
-    
+
     const summaryData = {
       content: content,
       summaryType: summaryType,
@@ -1307,8 +1433,10 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadAISummaryForCurrentTab() {
     // 检查当前所在的tab
     const currentActiveTab = document.querySelector(".tab.active");
-    const currentTabName = currentActiveTab ? currentActiveTab.getAttribute("data-tab") : "unknown";
-    
+    const currentTabName = currentActiveTab
+      ? currentActiveTab.getAttribute("data-tab")
+      : "unknown";
+
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs && tabs[0]) {
         const url = tabs[0].url;
@@ -1316,7 +1444,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const summaryType = document.querySelector(
           'input[name="summary-type"]:checked'
         ).value;
-        
+
         const summaryData = loadAISummary(url, summaryType);
 
         // 检查是否存在任何类型的AI总结
@@ -1329,7 +1457,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // 显示清除缓存按钮
           document.getElementById("clear-cache-btn").style.display =
             "inline-block";
-          
+
           // 如果存在AI总结，自动切换到AI tab
           switchTab("ai");
         } else {
@@ -1355,13 +1483,19 @@ document.addEventListener("DOMContentLoaded", function () {
         // 只有在用户不在AI tab中操作时才自动切换到有数据的总结类型
         if (hasAnySummary && !summaryData && currentTabName !== "ai") {
           if (fullSummaryData) {
-            document.querySelector('input[name="summary-type"][value="full"]').checked = true;
+            document.querySelector(
+              'input[name="summary-type"][value="full"]'
+            ).checked = true;
             displayCachedAISummary(fullSummaryData);
-            document.getElementById("clear-cache-btn").style.display = "inline-block";
+            document.getElementById("clear-cache-btn").style.display =
+              "inline-block";
           } else if (keySummaryData) {
-            document.querySelector('input[name="summary-type"][value="keyinfo"]').checked = true;
+            document.querySelector(
+              'input[name="summary-type"][value="keyinfo"]'
+            ).checked = true;
             displayCachedAISummary(keySummaryData);
-            document.getElementById("clear-cache-btn").style.display = "inline-block";
+            document.getElementById("clear-cache-btn").style.display =
+              "inline-block";
           }
           // 自动切换到AI tab
           switchTab("ai");

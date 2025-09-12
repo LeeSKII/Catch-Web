@@ -178,6 +178,41 @@ body {
   transform: translateY(-2px);
 }
 
+/* 暗色模式下的按钮样式 */
+html[data-theme="dark"] .btn-primary,
+body[data-theme="dark"] .btn-primary {
+  background: var(--primary-color);
+  color: white;
+  filter: brightness(1.1);
+}
+
+html[data-theme="dark"] .btn-secondary,
+body[data-theme="dark"] .btn-secondary {
+  background: var(--accent-color);
+  color: white;
+  filter: brightness(1.1);
+}
+
+html[data-theme="dark"] .btn-success,
+body[data-theme="dark"] .btn-success {
+  background: var(--success-color);
+  color: white;
+  filter: brightness(1.1);
+}
+
+html[data-theme="dark"] .btn-warning,
+body[data-theme="dark"] .btn-warning {
+  background: var(--warning-color);
+  color: white;
+  filter: brightness(1.1);
+}
+
+html[data-theme="dark"] .btn:hover,
+body[data-theme="dark"] .btn:hover {
+  opacity: 0.95;
+  filter: brightness(1.2);
+}
+
 .filter-box {
   margin-bottom: 10px;
   display: flex;

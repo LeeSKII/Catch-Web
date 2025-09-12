@@ -3,7 +3,7 @@
   "name": "网页信息提取器",
   "version": "1.1",
   "description": "提取网页的全部信息，包括HTML、文本、图片、链接和元数据",
-  "permissions": ["activeTab", "scripting", "downloads", "storage","sidePanel","tabs"],
+  "permissions": ["activeTab","declarativeContent", "scripting", "downloads", "storage","sidePanel","tabs"],
   "host_permissions": ["https://*/*", "http://*/*"],
   "background": {
     "service_worker": "service-worker.js"
