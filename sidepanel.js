@@ -1,5 +1,159 @@
+// Toast通知管理类
+class ToastManager {
+  constructor() {
+    this.container = document.getElementById('toast-container');
+    if (!this.container) {
+      this.container = document.createElement('div');
+      this.container.id = 'toast-container';
+      this.container.className = 'toast-container';
+      document.body.appendChild(this.container);
+    }
+    this.toasts = [];
+  }
+
+  show(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'toast-close';
+    closeBtn.textContent = '×';
+    closeBtn.onclick = () => this.remove(toast);
+    
+    toast.appendChild(messageSpan);
+    toast.appendChild(closeBtn);
+    
+    this.container.appendChild(toast);
+    this.toasts.push(toast);
+    
+    // 自动移除
+    if (duration > 0) {
+      setTimeout(() => this.remove(toast), duration);
+    }
+    
+    return toast;
+  }
+
+  remove(toast) {
+    toast.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+      const index = this.toasts.indexOf(toast);
+      if (index > -1) {
+        this.toasts.splice(index, 1);
+      }
+    }, 300);
+  }
+
+  success(message, duration) {
+    return this.show(message, 'success', duration);
+  }
+
+  error(message, duration) {
+    return this.show(message, 'error', duration);
+  }
+
+  warning(message, duration) {
+    return this.show(message, 'warning', duration);
+  }
+
+  info(message, duration) {
+    return this.show(message, 'info', duration);
+  }
+}
+
+// 主题管理类
+class ThemeManager {
+  constructor() {
+    this.isDarkMode = localStorage.getItem("darkMode") === "true";
+    this.themes = {
+      light: {
+        "--light-color": "#f8f9fa",
+        "--dark-color": "#212529",
+        "--section-bg": "white",
+        "--section-content-bg": "#f9f9f9",
+        "--border-color": "#eee",
+        "--tab-bg": "white",
+        "--section-title-color": "var(--secondary-color)",
+        "--tab-text-color": "var(--dark-color)",
+        "--markdown-bg-light": "#f0f0f0",
+        "--markdown-bg-dark": "#e0e0e0",
+        "--markdown-border-light": "#ddd",
+        "--markdown-border-dark": "#ccc",
+        "--markdown-text-light": "#666",
+        "--markdown-text-dark": "#555",
+        "--primary-color": "#4361ee",
+        "--secondary-color": "#3a0ca3",
+        "--accent-color": "#7209b7",
+        "--success-color": "#4cc9f0",
+        "--warning-color": "#f72585"
+      },
+      dark: {
+        "--light-color": "#212529",
+        "--dark-color": "#f8f9fa",
+        "--section-bg": "#2d2d2d",
+        "--section-content-bg": "#3d3d3d",
+        "--border-color": "#444",
+        "--tab-bg": "#2d2d2d",
+        "--section-title-color": "#8b9cff",
+        "--tab-text-color": "#ffffff",
+        "--markdown-bg-light": "#2d2d2d",
+        "--markdown-bg-dark": "#1a1a1a",
+        "--markdown-border-light": "#555",
+        "--markdown-border-dark": "#666",
+        "--markdown-text-light": "#ccc",
+        "--markdown-text-dark": "#aaa",
+        "--primary-color": "#6b8cff",
+        "--secondary-color": "#5a4bd0",
+        "--accent-color": "#9b4fd0",
+        "--success-color": "#4db8d8",
+        "--warning-color": "#e63946"
+      }
+    };
+  }
+
+  applyTheme(theme) {
+    const root = document.documentElement;
+    const themeVars = this.themes[theme];
+    
+    // 批量设置CSS变量
+    Object.entries(themeVars).forEach(([key, value]) => {
+      root.style.setProperty(key, value);
+    });
+    
+    // 设置data-theme属性
+    if (theme === 'dark') {
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.removeAttribute('data-theme');
+    }
+    
+    this.isDarkMode = theme === 'dark';
+    localStorage.setItem("darkMode", this.isDarkMode);
+  }
+
+  toggle() {
+    const newTheme = this.isDarkMode ? 'light' : 'dark';
+    this.applyTheme(newTheme);
+  }
+
+  initialize() {
+    this.applyTheme(this.isDarkMode ? 'dark' : 'light');
+  }
+}
+
+// 创建全局主题管理器实例
+const themeManager = new ThemeManager();
+
+// 创建全局Toast管理器实例
+const toastManager = new ToastManager();
+
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("[DEBUG] DOM内容已加载，开始初始化");
 
   // 初始化变量
   let extractedData = {};
@@ -131,10 +285,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 加载设置
   function loadSettings() {
+    // 加载显示预览设置
     document.getElementById("show-previews").checked =
       localStorage.getItem("showPreviews") !== "false";
-    document.getElementById("dark-mode").checked =
-      localStorage.getItem("darkMode") === "true";
+    
+    // 加载数据保留设置
     document.getElementById("data-retention").value =
       localStorage.getItem("dataRetention") || "7";
 
@@ -162,64 +317,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("ai-model").value =
       localStorage.getItem("aiModel") || "gpt-3.5-turbo";
 
-    // 应用暗色模式
-    if (localStorage.getItem("darkMode") === "true") {
-      document.documentElement.setAttribute("data-theme", "dark");
-      document.documentElement.style.setProperty("--light-color", "#212529");
-      document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
-      document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
-      document.documentElement.style.setProperty(
-        "--section-content-bg",
-        "#3d3d3d"
-      );
-      document.documentElement.style.setProperty("--border-color", "#444");
-      document.documentElement.style.setProperty("--tab-bg", "#2d2d2d");
-      document.documentElement.style.setProperty(
-        "--section-title-color",
-        "#8b9cff"
-      );
-      document.documentElement.style.setProperty("--tab-text-color", "#ffffff");
-      document.documentElement.style.setProperty(
-        "--markdown-bg-light",
-        "#2d2d2d"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-bg-dark",
-        "#1a1a1a"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-border-light",
-        "#555"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-border-dark",
-        "#666"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-text-light",
-        "#ccc"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-text-dark",
-        "#aaa"
-      );
-      
-      // 修复：添加暗色模式下的按钮颜色变量（优化为更适合暗色主题的颜色）
-      document.documentElement.style.setProperty("--primary-color", "#6b8cff");
-      document.documentElement.style.setProperty("--secondary-color", "#5a4bd0");
-      document.documentElement.style.setProperty("--accent-color", "#9b4fd0");
-      document.documentElement.style.setProperty("--success-color", "#4db8d8");
-      document.documentElement.style.setProperty("--warning-color", "#e63946");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-      
-      // 修复：确保亮色模式下的按钮颜色变量正确设置
-      document.documentElement.style.setProperty("--primary-color", "#4361ee");
-      document.documentElement.style.setProperty("--secondary-color", "#3a0ca3");
-      document.documentElement.style.setProperty("--accent-color", "#7209b7");
-      document.documentElement.style.setProperty("--success-color", "#4cc9f0");
-      document.documentElement.style.setProperty("--warning-color", "#f72585");
-    }
+    // 初始化主题
+    themeManager.initialize();
   }
 
   // 保存设置
@@ -281,153 +380,12 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("ai-model").value.trim()
     );
 
-    alert("设置已保存！");
+    toastManager.success("设置已保存！");
   }
 
   // 切换暗色模式
   function toggleDarkMode() {
-    const isDarkMode = document.getElementById("dark-mode").checked;
-
-    
-
-    const rootStyles = getComputedStyle(document.documentElement);
-
-    if (isDarkMode) {
-      document.documentElement.setAttribute("data-theme", "dark");
-      document.documentElement.style.setProperty("--light-color", "#212529");
-      document.documentElement.style.setProperty("--dark-color", "#f8f9fa");
-      document.documentElement.style.setProperty("--section-bg", "#2d2d2d");
-      document.documentElement.style.setProperty(
-        "--section-content-bg",
-        "#3d3d3d"
-      );
-      document.documentElement.style.setProperty("--border-color", "#444");
-      document.documentElement.style.setProperty("--tab-bg", "#2d2d2d");
-      document.documentElement.style.setProperty(
-        "--section-title-color",
-        "#8b9cff"
-      );
-      document.documentElement.style.setProperty("--tab-text-color", "#ffffff");
-      document.documentElement.style.setProperty(
-        "--markdown-bg-light",
-        "#2d2d2d"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-bg-dark",
-        "#1a1a1a"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-border-light",
-        "#555"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-border-dark",
-        "#666"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-text-light",
-        "#ccc"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-text-dark",
-        "#aaa"
-      );
-      
-      // 修复：添加暗色模式下的按钮颜色变量（优化为更适合暗色主题的颜色）
-      document.documentElement.style.setProperty("--primary-color", "#6b8cff");
-      document.documentElement.style.setProperty("--secondary-color", "#5a4bd0");
-      document.documentElement.style.setProperty("--accent-color", "#9b4fd0");
-      document.documentElement.style.setProperty("--success-color", "#4db8d8");
-      document.documentElement.style.setProperty("--warning-color", "#e63946");
-      
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-      document.documentElement.style.setProperty("--light-color", "#f8f9fa");
-      document.documentElement.style.setProperty("--dark-color", "#212529");
-      document.documentElement.style.setProperty("--section-bg", "white");
-      document.documentElement.style.setProperty(
-        "--section-content-bg",
-        "#f9f9f9"
-      );
-      document.documentElement.style.setProperty("--border-color", "#eee");
-      document.documentElement.style.setProperty("--tab-bg", "white");
-      document.documentElement.style.setProperty(
-        "--section-title-color",
-        "var(--secondary-color)"
-      );
-      document.documentElement.style.setProperty(
-        "--tab-text-color",
-        "var(--dark-color)"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-bg-light",
-        "#f0f0f0"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-bg-dark",
-        "#e0e0e0"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-border-light",
-        "#ddd"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-border-dark",
-        "#ccc"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-text-light",
-        "#666"
-      );
-      document.documentElement.style.setProperty(
-        "--markdown-text-dark",
-        "#555"
-      );
-      
-      // 修复：恢复亮色模式下的按钮颜色变量
-      document.documentElement.style.setProperty("--primary-color", "#4361ee");
-      document.documentElement.style.setProperty("--secondary-color", "#3a0ca3");
-      document.documentElement.style.setProperty("--accent-color", "#7209b7");
-      document.documentElement.style.setProperty("--success-color", "#4cc9f0");
-      document.documentElement.style.setProperty("--warning-color", "#f72585");
-      
-    }
-
-    // 检查section元素的背景色
-    const sections = document.querySelectorAll(".section");
-    sections.forEach((section, index) => {
-      const computedStyle = window.getComputedStyle(section);
-});
-
-    // 检查section-content元素的背景色
-    const sectionContents = document.querySelectorAll(".section-content");
-    
-    sectionContents.forEach((content, index) => {
-      const computedStyle = window.getComputedStyle(content);
-
-    });
-
-    // 检查section-title元素的颜色
-    const sectionTitles = document.querySelectorAll(".section-title");
-
-    sectionTitles.forEach((title, index) => {
-      const computedStyle = window.getComputedStyle(title);
-    });
-
-    // 检查tab元素的颜色
-    const tabs = document.querySelectorAll(".tab");
-    tabs.forEach((tab, index) => {
-      const computedStyle = window.getComputedStyle(tab);
-    });
-
-    // 检查markdown code元素的背景色
-    const codeElements = document.querySelectorAll("#streaming-content code");
-    codeElements.forEach((code, index) => {
-      const computedStyle = window.getComputedStyle(code);
-    });
-
-    // 检查按钮元素的样式
-    const buttons = document.querySelectorAll(".btn");
+    themeManager.toggle();
   }
 
   // 提取数据函数
@@ -447,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 如果没有选中任何选项，提示用户
     if (!Object.values(options).some((opt) => opt)) {
-      alert("请至少选择一个提取选项！");
+      toastManager.warning("请至少选择一个提取选项！");
       return;
     }
 
@@ -798,7 +756,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 查看全部图片
   function viewAllImages() {
     if (!extractedData.images || extractedData.images.length === 0) {
-      alert("没有可查看的图片");
+      toastManager.warning("没有可查看的图片");
       return;
     }
 
@@ -811,12 +769,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // 下载全部图片
   function downloadAllImages() {
     if (!extractedData.images || extractedData.images.length === 0) {
-      alert("没有可下载的图片");
+      toastManager.warning("没有可下载的图片");
       return;
     }
 
     // 这里应该实现下载逻辑
-    alert(`开始下载 ${extractedData.images.length} 张图片`);
+    toastManager.success(`开始下载 ${extractedData.images.length} 张图片`);
 
     // 实际实现会使用chrome.downloads API
     extractedData.images.forEach((img, index) => {
@@ -833,7 +791,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 查看全部链接
   function viewAllLinks() {
     if (!extractedData.links || extractedData.links.length === 0) {
-      alert("没有可查看的链接");
+      toastManager.warning("没有可查看的链接");
       return;
     }
 
@@ -850,18 +808,18 @@ document.addEventListener("DOMContentLoaded", function () {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        alert("数据已复制到剪贴板！");
+        toastManager.success("数据已复制到剪贴板！");
       })
       .catch((err) => {
         console.error("复制失败:", err);
-        alert("复制失败，请重试");
+        toastManager.error("复制失败，请重试");
       });
   }
 
   // 导出数据
   function exportData() {
     if (Object.keys(extractedData).length === 0) {
-      alert("没有数据可导出");
+      toastManager.warning("没有数据可导出");
       return;
     }
 
@@ -1214,7 +1172,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function copySummary() {
     const streamingContent = document.getElementById("streaming-content");
     if (!streamingContent) {
-      alert("没有可复制的总结内容");
+      toastManager.warning("没有可复制的总结内容");
       return;
     }
 
@@ -1224,18 +1182,18 @@ document.addEventListener("DOMContentLoaded", function () {
       !summaryText ||
       summaryText.includes('点击"AI总结"按钮开始生成网页内容总结')
     ) {
-      alert("没有可复制的总结内容");
+      toastManager.warning("没有可复制的总结内容");
       return;
     }
 
     navigator.clipboard
       .writeText(summaryText)
       .then(() => {
-        alert("AI总结已复制到剪贴板！");
+        toastManager.success("AI总结已复制到剪贴板！");
       })
       .catch((err) => {
         console.error("复制失败:", err);
-        alert("复制失败，请重试");
+        toastManager.error("复制失败，请重试");
       });
   }
 
@@ -1430,7 +1388,7 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
         `;
 
-        alert("缓存已清除");
+        toastManager.success("缓存已清除");
       }
     });
   }
