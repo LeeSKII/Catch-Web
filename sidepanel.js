@@ -1464,6 +1464,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (aiSummarySection) {
       aiSummarySection.style.display = "none";
     }
+    
+    // 禁用AI总结按钮并更新文本
+    const aiSummaryBtn = document.getElementById("ai-summary-btn");
+    const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+    if (aiSummaryBtn) {
+      aiSummaryBtn.disabled = true;
+      if (aiSummaryBtnText) {
+        aiSummaryBtnText.textContent = "等待页面加载...";
+      }
+    }
   }
 
   // 当切换到新的tab或URL变化时刷新数据
@@ -1483,6 +1493,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // 加载新页面的AI总结
       loadAISummaryForCurrentTab();
+      
+      // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
+      const aiSummaryBtn = document.getElementById("ai-summary-btn");
+      const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+      if (aiSummaryBtn) {
+        aiSummaryBtn.disabled = false;
+        if (aiSummaryBtnText) {
+          aiSummaryBtnText.textContent = "AI总结";
+        }
+      }
     }, 500);
   }
 });
