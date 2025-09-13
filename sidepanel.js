@@ -147,6 +147,65 @@ class ThemeManager {
   }
 }
 
+//supabase初始化
+const client = supabase.createClient(
+  "https://jnzoquhmgpjbqcabgxrd.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impuem9xdWhtZ3BqYnFjYWJneHJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MDc4OTgsImV4cCI6MjA3MjA4Mzg5OH0.BKMFZNbTgGf5yxfAQuFbA912fISlbbL3GE6YDn-OkaA"
+);
+
+async function getNews(url) {
+  const { data } = await client
+    .from("News")
+    .select("url,summarizer")
+    .eq("url", url);
+  console.log(data);
+  return data;
+}
+
+// 显示从数据库获取的summarizer数据
+function displayNewsSummarizer(summarizerData) {
+  if (!summarizerData || summarizerData.length === 0) {
+    return false; // 没有数据，返回false
+  }
+
+  const summarizer = summarizerData[0].summarizer;
+  if (!summarizer) {
+    return false; // 没有summarizer内容，返回false
+  }
+
+  // 隐藏AI状态区域
+  document.getElementById("ai-status-section").style.display = "none";
+
+  // 显示summarizer内容
+  document.getElementById("ai-summary-result").innerHTML = `
+    <div id="streaming-content"></div>
+  `;
+
+  // 在独立的状态区域显示数据库来源信息
+  const statusElement = document.getElementById("ai-summary-status");
+  statusElement.style.display = "block";
+  statusElement.innerHTML = `
+    <span style="background: #d1ecf1; padding: 2px 6px; border-radius: 3px;">数据库内容</span>
+    <span style="margin-left: 10px;">从数据库加载</span>
+  `;
+
+  // 使用marked渲染markdown
+  document.getElementById("streaming-content").innerHTML =
+    marked.parse(summarizer);
+
+  // 确保AI总结内容区域显示
+  const aiSummarySection = document.querySelector(
+    "#ai-tab .section:nth-child(2)"
+  );
+  if (aiSummarySection) {
+    aiSummarySection.style.display = "block";
+  }
+
+  return true; // 成功显示，返回true
+}
+
+async function insertNews() {}
+
 // 创建全局主题管理器实例
 const themeManager = new ThemeManager();
 
@@ -157,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 初始化变量
   let extractedData = {};
   let currentTab = "results";
-  
+
   // DOM加载完成后，启用AI总结按钮并恢复原始文本
   const aiSummaryBtn = document.getElementById("ai-summary-btn");
   const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
@@ -260,6 +319,36 @@ document.addEventListener("DOMContentLoaded", function () {
   chrome.tabs.onActivated.addListener(function (activeInfo) {
     // 当用户切换到不同的tab时，自动执行数据提取和AI总结加载
     refreshDataForNewTab();
+
+    // 获取当前tab的URL并调用getNews函数
+    chrome.tabs.get(activeInfo.tabId, function (tab) {
+      if (tab && tab.url) {
+        // 首先尝试从storage加载AI总结
+        const summaryType = document.querySelector(
+          'input[name="summary-type"]:checked'
+        ).value;
+        const summaryData = loadAISummary(tab.url, summaryType);
+
+        if (summaryData) {
+          displayCachedAISummary(summaryData);
+          switchTab("ai");
+        } else {
+          // 如果storage中没有，再从数据库加载summarizer
+          getNews(tab.url)
+            .then((newsData) => {
+              console.log("Tab切换时获取的新闻数据:", newsData);
+              // 尝试显示summarizer数据
+              if (displayNewsSummarizer(newsData)) {
+                // 如果成功显示了summarizer数据，切换到AI tab
+                switchTab("ai");
+              }
+            })
+            .catch((error) => {
+              console.error("获取新闻数据失败:", error);
+            });
+        }
+      }
+    });
   });
 
   // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
@@ -269,10 +358,36 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("[DEBUG] 检测到URL变化，立即清空面板内容");
       clearPanelData();
     }
-    
-    // 在页面加载完成时刷新数据
-    if (changeInfo.status === "complete" && tab.active) {
-      refreshDataForNewTab();
+
+    //立即刷新数据
+    refreshDataForNewTab();
+
+    // 获取当前URL并调用getNews函数
+    if (tab.url) {
+      // 首先尝试从storage加载AI总结
+      const summaryType = document.querySelector(
+        'input[name="summary-type"]:checked'
+      ).value;
+      const summaryData = loadAISummary(tab.url, summaryType);
+
+      if (summaryData) {
+        displayCachedAISummary(summaryData);
+        switchTab("ai");
+      } else {
+        // 如果storage中没有，再从数据库加载summarizer
+        getNews(tab.url)
+          .then((newsData) => {
+            console.log("URL更新时获取的新闻数据:", newsData);
+            // 尝试显示summarizer数据
+            if (displayNewsSummarizer(newsData)) {
+              // 如果成功显示了summarizer数据，切换到AI tab
+              switchTab("ai");
+            }
+          })
+          .catch((error) => {
+            console.error("获取新闻数据失败:", error);
+          });
+      }
     }
   });
 
@@ -334,7 +449,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 初始化主题
     themeManager.initialize();
-    
+
     // 同步暗色模式按钮状态与当前主题
     const darkModeToggle = document.getElementById("dark-mode");
     if (darkModeToggle) {
@@ -602,28 +717,32 @@ document.addEventListener("DOMContentLoaded", function () {
   // 控制图片和链接栏目的显示
   function toggleSectionsVisibility(data) {
     // 获取图片和链接的section元素
-    const imagesSection = document.querySelector('#results-tab .section:nth-child(3)');
-    const linksSection = document.querySelector('#results-tab .section:nth-child(4)');
-    
+    const imagesSection = document.querySelector(
+      "#results-tab .section:nth-child(3)"
+    );
+    const linksSection = document.querySelector(
+      "#results-tab .section:nth-child(4)"
+    );
+
     // 如果没有图片数据，隐藏图片栏目
     if (!data.images || data.images.length === 0) {
       if (imagesSection) {
-        imagesSection.style.display = 'none';
+        imagesSection.style.display = "none";
       }
     } else {
       if (imagesSection) {
-        imagesSection.style.display = 'block';
+        imagesSection.style.display = "block";
       }
     }
-    
+
     // 如果没有链接数据，隐藏链接栏目
     if (!data.links || data.links.length === 0) {
       if (linksSection) {
-        linksSection.style.display = 'none';
+        linksSection.style.display = "none";
       }
     } else {
       if (linksSection) {
-        linksSection.style.display = 'block';
+        linksSection.style.display = "block";
       }
     }
   }
@@ -665,7 +784,6 @@ document.addEventListener("DOMContentLoaded", function () {
         html += `<div><strong>文章内容:</strong> 未找到article标签</div>`;
       }
     }
-
 
     pageInfoElement.innerHTML = html;
   }
@@ -993,7 +1111,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // 禁用按钮防止重复请求
     aiButton.disabled = true;
     const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
-    const originalButtonText = aiSummaryBtnText ? aiSummaryBtnText.textContent : "AI总结";
+    const originalButtonText = aiSummaryBtnText
+      ? aiSummaryBtnText.textContent
+      : "AI总结";
     if (aiSummaryBtnText) {
       aiSummaryBtnText.textContent = "生成中...";
     }
@@ -1347,22 +1467,63 @@ document.addEventListener("DOMContentLoaded", function () {
           // 如果存在AI总结，自动切换到AI tab
           switchTab("ai");
         } else {
-          // 如果没有对应类型的总结数据，隐藏AI总结结果区域
-          document.getElementById("ai-status-section").style.display = "none";
-          document.getElementById("ai-summary-result").innerHTML = `
-            <div style="text-align: center; color: #666; padding: 3px;">
-              点击"AI总结"按钮开始生成网页内容总结
-            </div>
-          `;
-          // 隐藏整个AI总结内容区域
-          const aiSummarySection = document.querySelector(
-            "#ai-tab .section:nth-child(2)"
-          );
-          if (aiSummarySection) {
-            aiSummarySection.style.display = "none";
-          }
-          // 隐藏清除缓存按钮
-          document.getElementById("clear-cache-btn").style.display = "none";
+          // 如果storage中没有对应类型的总结数据，尝试从数据库加载summarizer
+          getNews(url)
+            .then((newsData) => {
+              if (displayNewsSummarizer(newsData)) {
+                // 如果成功从数据库显示了summarizer数据，切换到AI tab
+                switchTab("ai");
+              } else {
+                // 如果数据库中也没有summarizer数据，隐藏AI总结结果区域
+                document.getElementById("ai-status-section").style.display =
+                  "none";
+                document.getElementById("ai-summary-result").innerHTML = `
+                <div style="text-align: center; color: #666; padding: 3px;">
+                  点击"AI总结"按钮开始生成网页内容总结
+                </div>
+              `;
+                // 隐藏整个AI总结内容区域
+                const aiSummarySection = document.querySelector(
+                  "#ai-tab .section:nth-child(2)"
+                );
+                if (aiSummarySection) {
+                  aiSummarySection.style.display = "none";
+                }
+                // 隐藏清除缓存按钮
+                document.getElementById("clear-cache-btn").style.display =
+                  "none";
+
+                // 如果没有任何AI总结，只有在非AI tab时才切换到results tab
+                if (currentTabName !== "ai") {
+                  switchTab("results");
+                }
+              }
+            })
+            .catch((error) => {
+              console.error("从数据库获取新闻数据失败:", error);
+              // 如果获取数据库数据失败，也隐藏AI总结结果区域
+              document.getElementById("ai-status-section").style.display =
+                "none";
+              document.getElementById("ai-summary-result").innerHTML = `
+              <div style="text-align: center; color: #666; padding: 3px;">
+                点击"AI总结"按钮开始生成网页内容总结
+              </div>
+            `;
+              // 隐藏整个AI总结内容区域
+              const aiSummarySection = document.querySelector(
+                "#ai-tab .section:nth-child(2)"
+              );
+              if (aiSummarySection) {
+                aiSummarySection.style.display = "none";
+              }
+              // 隐藏清除缓存按钮
+              document.getElementById("clear-cache-btn").style.display = "none";
+
+              // 如果没有任何AI总结，只有在非AI tab时才切换到results tab
+              if (currentTabName !== "ai") {
+                switchTab("results");
+              }
+            });
         }
 
         // 如果存在任何类型的AI总结，但当前选中的类型没有数据，
@@ -1385,29 +1546,6 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           // 自动切换到AI tab
           switchTab("ai");
-        } else if (!hasAnySummary) {
-          // 如果没有任何AI总结，只有在非AI tab时才切换到results tab
-          if (currentTabName !== "ai") {
-            switchTab("results");
-          } else {
-            // 用户正在AI tab中操作，保持在AI tab中
-            // 确保AI tab的UI状态正确
-            document.getElementById("ai-status-section").style.display = "none";
-            document.getElementById("ai-summary-result").innerHTML = `
-              <div style="text-align: center; color: #666; padding: 20px;">
-                点击"AI总结"按钮开始生成网页内容总结
-              </div>
-            `;
-            // 隐藏整个AI总结内容区域
-            const aiSummarySection = document.querySelector(
-              "#ai-tab .section:nth-child(2)"
-            );
-            if (aiSummarySection) {
-              aiSummarySection.style.display = "none";
-            }
-            // 隐藏清除缓存按钮
-            document.getElementById("clear-cache-btn").style.display = "none";
-          }
         }
       }
     });
@@ -1464,7 +1602,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (aiSummarySection) {
       aiSummarySection.style.display = "none";
     }
-    
+
     // 禁用AI总结按钮并更新文本
     const aiSummaryBtn = document.getElementById("ai-summary-btn");
     const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
@@ -1496,7 +1634,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // 检查页面是否正在加载
       if (currentTab.status === "loading") {
         console.log("[DEBUG] 页面正在加载中，保持loading状态");
-        
+
         // 设置AI总结按钮为loading状态
         const aiSummaryBtn = document.getElementById("ai-summary-btn");
         const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
@@ -1511,7 +1649,7 @@ document.addEventListener("DOMContentLoaded", function () {
         waitForPageLoadComplete(currentTab.id);
       } else {
         console.log("[DEBUG] 页面已加载完成，立即提取数据");
-        
+
         // 延迟执行以确保新页面已完全加载
         setTimeout(() => {
           console.log(
@@ -1522,10 +1660,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // 加载新页面的AI总结
           loadAISummaryForCurrentTab();
-          
+
+          // 获取当前URL的新闻数据
+          if (currentTab.url) {
+            // 首先尝试从storage加载AI总结
+            const summaryType = document.querySelector(
+              'input[name="summary-type"]:checked'
+            ).value;
+            const summaryData = loadAISummary(currentTab.url, summaryType);
+
+            if (summaryData) {
+              displayCachedAISummary(summaryData);
+              switchTab("ai");
+            } else {
+              // 如果storage中没有，再从数据库加载summarizer
+              getNews(currentTab.url)
+                .then((newsData) => {
+                  console.log(
+                    "refreshDataForNewTab中获取的新闻数据:",
+                    newsData
+                  );
+                  // 尝试显示summarizer数据
+                  if (displayNewsSummarizer(newsData)) {
+                    // 如果成功显示了summarizer数据，切换到AI tab
+                    switchTab("ai");
+                  }
+                })
+                .catch((error) => {
+                  console.error("获取新闻数据失败:", error);
+                });
+            }
+          }
+
           // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
           const aiSummaryBtn = document.getElementById("ai-summary-btn");
-          const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+          const aiSummaryBtnText = document.getElementById(
+            "ai-summary-btn-text"
+          );
           if (aiSummaryBtn) {
             aiSummaryBtn.disabled = false;
             if (aiSummaryBtnText) {
@@ -1540,7 +1711,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 等待页面加载完成
   function waitForPageLoadComplete(tabId) {
     console.log("[DEBUG] 开始等待页面加载完成，tabId:", tabId);
-    
+
     // 设置超时时间，防止无限等待
     const timeout = setTimeout(() => {
       console.log("[DEBUG] 页面加载超时，强制执行数据提取");
@@ -1580,13 +1751,46 @@ document.addEventListener("DOMContentLoaded", function () {
   // 执行数据提取和相关操作
   function proceedWithDataExtraction() {
     console.log("[DEBUG] 开始执行数据提取");
-    
+
     // 提取新页面的数据
     extractData();
 
     // 加载新页面的AI总结
     loadAISummaryForCurrentTab();
-    
+
+    // 获取当前URL的新闻数据
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs && tabs[0] && tabs[0].url) {
+        // 首先尝试从storage加载AI总结
+        const summaryType = document.querySelector(
+          'input[name="summary-type"]:checked'
+        ).value;
+        const summaryData = loadAISummary(tabs[0].url, summaryType);
+
+        if (summaryData) {
+          displayCachedAISummary(summaryData);
+          switchTab("ai");
+        } else {
+          // 如果storage中没有，再从数据库加载summarizer
+          getNews(tabs[0].url)
+            .then((newsData) => {
+              console.log(
+                "proceedWithDataExtraction中获取的新闻数据:",
+                newsData
+              );
+              // 尝试显示summarizer数据
+              if (displayNewsSummarizer(newsData)) {
+                // 如果成功显示了summarizer数据，切换到AI tab
+                switchTab("ai");
+              }
+            })
+            .catch((error) => {
+              console.error("获取新闻数据失败:", error);
+            });
+        }
+      }
+    });
+
     // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
     const aiSummaryBtn = document.getElementById("ai-summary-btn");
     const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
