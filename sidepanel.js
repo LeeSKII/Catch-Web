@@ -1658,9 +1658,6 @@ document.addEventListener("DOMContentLoaded", function () {
           // 提取新页面的数据
           extractData();
 
-          // 加载新页面的AI总结
-          loadAISummaryForCurrentTab();
-
           // 获取当前URL的新闻数据
           if (currentTab.url) {
             // 首先尝试从storage加载AI总结
