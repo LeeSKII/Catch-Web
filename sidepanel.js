@@ -157,6 +157,16 @@ document.addEventListener("DOMContentLoaded", function () {
   // 初始化变量
   let extractedData = {};
   let currentTab = "results";
+  
+  // DOM加载完成后，启用AI总结按钮并恢复原始文本
+  const aiSummaryBtn = document.getElementById("ai-summary-btn");
+  const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+  if (aiSummaryBtn) {
+    aiSummaryBtn.disabled = false;
+    if (aiSummaryBtnText) {
+      aiSummaryBtnText.textContent = "AI总结";
+    }
+  }
 
   // 加载保存的设置
   loadSettings();
@@ -254,7 +264,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
   chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    // 只在页面加载完成时更新
+    // 如果URL发生变化且是当前活动标签页，立即清空面板内容
+    if (changeInfo.url && tab.active) {
+      console.log("[DEBUG] 检测到URL变化，立即清空面板内容");
+      clearPanelData();
+    }
+    
+    // 在页面加载完成时刷新数据
     if (changeInfo.status === "complete" && tab.active) {
       refreshDataForNewTab();
     }
@@ -976,8 +992,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 禁用按钮防止重复请求
     aiButton.disabled = true;
-    const originalButtonText = aiButton.innerHTML;
-    aiButton.innerHTML = '<span class="icon">🤖</span> 生成中...';
+    const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+    const originalButtonText = aiSummaryBtnText ? aiSummaryBtnText.textContent : "AI总结";
+    if (aiSummaryBtnText) {
+      aiSummaryBtnText.textContent = "生成中...";
+    }
 
     try {
       const content = extractedData.text || "";
@@ -985,7 +1004,10 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("[DEBUG] 未识别到任何需要总结的数据");
         // 恢复按钮状态
         aiButton.disabled = false;
-        aiButton.innerHTML = originalButtonText;
+        const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+        if (aiSummaryBtnText) {
+          aiSummaryBtnText.textContent = originalButtonText;
+        }
         return;
       }
 
@@ -994,7 +1016,10 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("[DEBUG] 请先提取网页数据");
         // 恢复按钮状态
         aiButton.disabled = false;
-        aiButton.innerHTML = originalButtonText;
+        const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+        if (aiSummaryBtnText) {
+          aiSummaryBtnText.textContent = originalButtonText;
+        }
         switchTab("settings");
         return;
       }
@@ -1005,7 +1030,10 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("[DEBUG] 请先在设置中配置OpenAI API密钥");
         // 恢复按钮状态
         aiButton.disabled = false;
-        aiButton.innerHTML = originalButtonText;
+        const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+        if (aiSummaryBtnText) {
+          aiSummaryBtnText.textContent = originalButtonText;
+        }
         switchTab("settings");
         return;
       }
@@ -1038,13 +1066,19 @@ document.addEventListener("DOMContentLoaded", function () {
       callOpenAI(apiKey, system_prompt, content).finally(() => {
         // 请求完成后恢复按钮状态
         aiButton.disabled = false;
-        aiButton.innerHTML = originalButtonText;
+        const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+        if (aiSummaryBtnText) {
+          aiSummaryBtnText.textContent = originalButtonText;
+        }
       });
     } catch (error) {
       console.error("生成AI总结时出错:", error);
       // 发生错误时恢复按钮状态
       aiButton.disabled = false;
-      aiButton.innerHTML = originalButtonText;
+      const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+      if (aiSummaryBtnText) {
+        aiSummaryBtnText.textContent = originalButtonText;
+      }
     }
   }
 
