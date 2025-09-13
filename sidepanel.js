@@ -1483,26 +1483,118 @@ document.addEventListener("DOMContentLoaded", function () {
     // 立即清空当前panel数据
     clearPanelData();
 
-    // 延迟执行以确保新页面已完全加载
-    setTimeout(() => {
-      console.log(
-        "[DEBUG] 在refreshDataForNewTab的setTimeout中调用extractData()"
-      );
-      // 提取新页面的数据
-      extractData();
-
-      // 加载新页面的AI总结
-      loadAISummaryForCurrentTab();
-      
-      // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
-      const aiSummaryBtn = document.getElementById("ai-summary-btn");
-      const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
-      if (aiSummaryBtn) {
-        aiSummaryBtn.disabled = false;
-        if (aiSummaryBtnText) {
-          aiSummaryBtnText.textContent = "AI总结";
-        }
+    // 获取当前tab的加载状态
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (!tabs || !tabs[0]) {
+        console.log("[DEBUG] 无法获取当前tab信息");
+        return;
       }
-    }, 500);
+
+      const currentTab = tabs[0];
+      console.log("[DEBUG] 当前tab状态:", currentTab.status);
+
+      // 检查页面是否正在加载
+      if (currentTab.status === "loading") {
+        console.log("[DEBUG] 页面正在加载中，保持loading状态");
+        
+        // 设置AI总结按钮为loading状态
+        const aiSummaryBtn = document.getElementById("ai-summary-btn");
+        const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+        if (aiSummaryBtn) {
+          aiSummaryBtn.disabled = true;
+          if (aiSummaryBtnText) {
+            aiSummaryBtnText.textContent = "页面加载中...";
+          }
+        }
+
+        // 等待页面加载完成
+        waitForPageLoadComplete(currentTab.id);
+      } else {
+        console.log("[DEBUG] 页面已加载完成，立即提取数据");
+        
+        // 延迟执行以确保新页面已完全加载
+        setTimeout(() => {
+          console.log(
+            "[DEBUG] 在refreshDataForNewTab的setTimeout中调用extractData()"
+          );
+          // 提取新页面的数据
+          extractData();
+
+          // 加载新页面的AI总结
+          loadAISummaryForCurrentTab();
+          
+          // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
+          const aiSummaryBtn = document.getElementById("ai-summary-btn");
+          const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+          if (aiSummaryBtn) {
+            aiSummaryBtn.disabled = false;
+            if (aiSummaryBtnText) {
+              aiSummaryBtnText.textContent = "AI总结";
+            }
+          }
+        }, 500);
+      }
+    });
+  }
+
+  // 等待页面加载完成
+  function waitForPageLoadComplete(tabId) {
+    console.log("[DEBUG] 开始等待页面加载完成，tabId:", tabId);
+    
+    // 设置超时时间，防止无限等待
+    const timeout = setTimeout(() => {
+      console.log("[DEBUG] 页面加载超时，强制执行数据提取");
+      proceedWithDataExtraction();
+    }, 30000); // 30秒超时
+
+    // 监听tab更新事件
+    const updateListener = (updatedTabId, changeInfo, tab) => {
+      if (updatedTabId === tabId && changeInfo.status === "complete") {
+        console.log("[DEBUG] 检测到页面加载完成");
+        clearTimeout(timeout);
+        chrome.tabs.onUpdated.removeListener(updateListener);
+        proceedWithDataExtraction();
+      }
+    };
+
+    chrome.tabs.onUpdated.addListener(updateListener);
+
+    // 检查当前tab是否已经加载完成（防止在添加监听器之前就已经完成）
+    chrome.tabs.get(tabId, (tab) => {
+      if (chrome.runtime.lastError) {
+        console.error("[DEBUG] 获取tab信息失败:", chrome.runtime.lastError);
+        clearTimeout(timeout);
+        chrome.tabs.onUpdated.removeListener(updateListener);
+        return;
+      }
+
+      if (tab.status === "complete") {
+        console.log("[DEBUG] 当前tab已经加载完成");
+        clearTimeout(timeout);
+        chrome.tabs.onUpdated.removeListener(updateListener);
+        proceedWithDataExtraction();
+      }
+    });
+  }
+
+  // 执行数据提取和相关操作
+  function proceedWithDataExtraction() {
+    console.log("[DEBUG] 开始执行数据提取");
+    
+    // 提取新页面的数据
+    extractData();
+
+    // 加载新页面的AI总结
+    loadAISummaryForCurrentTab();
+    
+    // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
+    const aiSummaryBtn = document.getElementById("ai-summary-btn");
+    const aiSummaryBtnText = document.getElementById("ai-summary-btn-text");
+    if (aiSummaryBtn) {
+      aiSummaryBtn.disabled = false;
+      if (aiSummaryBtnText) {
+        aiSummaryBtnText.textContent = "AI总结";
+      }
+    }
   }
 });
