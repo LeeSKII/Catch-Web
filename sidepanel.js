@@ -1,44 +1,44 @@
 // Toast通知管理类
 class ToastManager {
   constructor() {
-    this.container = document.getElementById('toast-container');
+    this.container = document.getElementById("toast-container");
     if (!this.container) {
-      this.container = document.createElement('div');
-      this.container.id = 'toast-container';
-      this.container.className = 'toast-container';
+      this.container = document.createElement("div");
+      this.container.id = "toast-container";
+      this.container.className = "toast-container";
       document.body.appendChild(this.container);
     }
     this.toasts = [];
   }
 
-  show(message, type = 'info', duration = 3000) {
-    const toast = document.createElement('div');
+  show(message, type = "info", duration = 3000) {
+    const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
-    
-    const messageSpan = document.createElement('span');
+
+    const messageSpan = document.createElement("span");
     messageSpan.textContent = message;
-    
-    const closeBtn = document.createElement('span');
-    closeBtn.className = 'toast-close';
-    closeBtn.textContent = '×';
+
+    const closeBtn = document.createElement("span");
+    closeBtn.className = "toast-close";
+    closeBtn.textContent = "×";
     closeBtn.onclick = () => this.remove(toast);
-    
+
     toast.appendChild(messageSpan);
     toast.appendChild(closeBtn);
-    
+
     this.container.appendChild(toast);
     this.toasts.push(toast);
-    
+
     // 自动移除
     if (duration > 0) {
       setTimeout(() => this.remove(toast), duration);
     }
-    
+
     return toast;
   }
 
   remove(toast) {
-    toast.style.animation = 'slideOut 0.3s ease-out';
+    toast.style.animation = "slideOut 0.3s ease-out";
     setTimeout(() => {
       if (toast.parentNode) {
         toast.parentNode.removeChild(toast);
@@ -51,19 +51,19 @@ class ToastManager {
   }
 
   success(message, duration) {
-    return this.show(message, 'success', duration);
+    return this.show(message, "success", duration);
   }
 
   error(message, duration) {
-    return this.show(message, 'error', duration);
+    return this.show(message, "error", duration);
   }
 
   warning(message, duration) {
-    return this.show(message, 'warning', duration);
+    return this.show(message, "warning", duration);
   }
 
   info(message, duration) {
-    return this.show(message, 'info', duration);
+    return this.show(message, "info", duration);
   }
 }
 
@@ -91,7 +91,7 @@ class ThemeManager {
         "--secondary-color": "#3a0ca3",
         "--accent-color": "#7209b7",
         "--success-color": "#4cc9f0",
-        "--warning-color": "#f72585"
+        "--warning-color": "#f72585",
       },
       dark: {
         "--light-color": "#212529",
@@ -112,38 +112,38 @@ class ThemeManager {
         "--secondary-color": "#5a4bd0",
         "--accent-color": "#9b4fd0",
         "--success-color": "#4db8d8",
-        "--warning-color": "#e63946"
-      }
+        "--warning-color": "#e63946",
+      },
     };
   }
 
   applyTheme(theme) {
     const root = document.documentElement;
     const themeVars = this.themes[theme];
-    
+
     // 批量设置CSS变量
     Object.entries(themeVars).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-    
+
     // 设置data-theme属性
-    if (theme === 'dark') {
-      root.setAttribute('data-theme', 'dark');
+    if (theme === "dark") {
+      root.setAttribute("data-theme", "dark");
     } else {
-      root.removeAttribute('data-theme');
+      root.removeAttribute("data-theme");
     }
-    
-    this.isDarkMode = theme === 'dark';
+
+    this.isDarkMode = theme === "dark";
     localStorage.setItem("darkMode", this.isDarkMode);
   }
 
   toggle() {
-    const newTheme = this.isDarkMode ? 'light' : 'dark';
+    const newTheme = this.isDarkMode ? "light" : "dark";
     this.applyTheme(newTheme);
   }
 
   initialize() {
-    this.applyTheme(this.isDarkMode ? 'dark' : 'light');
+    this.applyTheme(this.isDarkMode ? "dark" : "light");
   }
 }
 
@@ -154,7 +154,6 @@ const themeManager = new ThemeManager();
 const toastManager = new ToastManager();
 
 document.addEventListener("DOMContentLoaded", function () {
-
   // 初始化变量
   let extractedData = {};
   let currentTab = "results";
@@ -288,7 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // 加载显示预览设置
     document.getElementById("show-previews").checked =
       localStorage.getItem("showPreviews") !== "false";
-    
+
     // 加载数据保留设置
     document.getElementById("data-retention").value =
       localStorage.getItem("dataRetention") || "7";
@@ -319,6 +318,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 初始化主题
     themeManager.initialize();
+    
+    // 同步暗色模式按钮状态与当前主题
+    const darkModeToggle = document.getElementById("dark-mode");
+    if (darkModeToggle) {
+      darkModeToggle.checked = themeManager.isDarkMode;
+    }
   }
 
   // 保存设置
@@ -390,7 +395,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 提取数据函数
   function extractData() {
-
     // 获取选中的提取选项
     const options = {
       html: document.getElementById("extract-html").checked,
@@ -410,7 +414,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-
       // 检查tab是否存在且URL是否有效
       if (!tabs[0] || !tabs[0].url) {
         console.log("[DEBUG] 无法获取当前页面URL，停止提取");
@@ -465,7 +468,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // 在页面上执行的数据提取函数
   function getPageData(options) {
     const data = {};
-    const startTime = performance.now();
 
     if (options.html) {
       data.html = document.documentElement.outerHTML;
@@ -550,7 +552,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    data.extractionTime = performance.now() - startTime;
     data.extractedAt = new Date().toISOString();
 
     return data;
@@ -577,6 +578,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 显示链接
     displayLinks(data.links);
+
+    // 控制图片和链接栏目的显示
+    toggleSectionsVisibility(data);
+  }
+
+  // 控制图片和链接栏目的显示
+  function toggleSectionsVisibility(data) {
+    // 获取图片和链接的section元素
+    const imagesSection = document.querySelector('#results-tab .section:nth-child(3)');
+    const linksSection = document.querySelector('#results-tab .section:nth-child(4)');
+    
+    // 如果没有图片数据，隐藏图片栏目
+    if (!data.images || data.images.length === 0) {
+      if (imagesSection) {
+        imagesSection.style.display = 'none';
+      }
+    } else {
+      if (imagesSection) {
+        imagesSection.style.display = 'block';
+      }
+    }
+    
+    // 如果没有链接数据，隐藏链接栏目
+    if (!data.links || data.links.length === 0) {
+      if (linksSection) {
+        linksSection.style.display = 'none';
+      }
+    } else {
+      if (linksSection) {
+        linksSection.style.display = 'block';
+      }
+    }
   }
 
   // 显示网页信息
@@ -592,27 +625,8 @@ document.addEventListener("DOMContentLoaded", function () {
       html += `<div><strong>标题:</strong> <span title="${data.title}">${truncatedTitle}</span></div>`;
     }
 
-    if (data.url) {
-      const truncatedUrl =
-        data.url.length > 60 ? data.url.substring(0, 60) + "..." : data.url;
-      html += `<div><strong>URL:</strong> <span title="${data.url}">${truncatedUrl}</span></div>`;
-    }
-
     if (data.host) {
       html += `<div><strong>主域名:</strong> ${data.host}</div>`;
-    }
-
-    if (data.meta) {
-      html += "<div><strong>元标签:</strong><ul>";
-      for (const [name, content] of Object.entries(data.meta)) {
-        if (content && content.length < 100) {
-          // 限制长度避免显示过长内容
-          const truncatedContent =
-            content.length > 50 ? content.substring(0, 50) + "..." : content;
-          html += `<li><strong>${name}:</strong> <span title="${content}">${truncatedContent}</span></li>`;
-        }
-      }
-      html += "</ul></div>";
     }
 
     if (data.wordCount) {
@@ -636,11 +650,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    if (data.extractionTime) {
-      html += `<div><strong>提取耗时:</strong> ${data.extractionTime.toFixed(
-        2
-      )}ms</div>`;
-    }
 
     pageInfoElement.innerHTML = html;
   }
