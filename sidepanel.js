@@ -154,22 +154,38 @@ const client = supabase.createClient(
 );
 
 async function getNews(url) {
-  const { data } = await client
-    .from("News")
-    .select("url,summarizer")
-    .eq("url", url);
-  console.log(data);
-  return data;
+  console.log("[DEBUG-AI] getNews() 被调用，URL:", url);
+  try {
+    const { data, error } = await client
+      .from("News")
+      .select("url,summarizer")
+      .eq("url", url);
+    
+    if (error) {
+      console.error("[DEBUG-AI] 数据库查询错误:", error);
+      return [];
+    }
+    
+    console.log("[DEBUG-AI] 数据库查询结果:", data);
+    return data || [];
+  } catch (error) {
+    console.error("[DEBUG-AI] getNews() 异常:", error);
+    return [];
+  }
 }
 
 // 显示从数据库获取的summarizer数据
 function displayNewsSummarizer(summarizerData) {
+  console.log("[DEBUG-AI] displayNewsSummarizer() 被调用，数据:", summarizerData);
+  
   if (!summarizerData || summarizerData.length === 0) {
+    console.log("[DEBUG-AI] 没有summarizer数据，返回false");
     return false; // 没有数据，返回false
   }
 
   const summarizer = summarizerData[0].summarizer;
   if (!summarizer) {
+    console.log("[DEBUG-AI] summarizer内容为空，返回false");
     return false; // 没有summarizer内容，返回false
   }
 
@@ -216,6 +232,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // 初始化变量
   let extractedData = {};
   let currentTab = "results";
+  
+  // 添加AI总结加载状态标志，防止竞态条件
+  let isLoadingAISummary = false;
 
   // DOM加载完成后，启用AI总结按钮并恢复原始文本
   const aiSummaryBtn = document.getElementById("ai-summary-btn");
@@ -317,77 +336,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 监听浏览器tab切换事件
   chrome.tabs.onActivated.addListener(function (activeInfo) {
+    console.log("[DEBUG-AI] chrome.tabs.onActivated 被调用，tabId:", activeInfo.tabId);
+    
     // 当用户切换到不同的tab时，自动执行数据提取和AI总结加载
     refreshDataForNewTab();
 
-    // 获取当前tab的URL并调用getNews函数
+    // 获取当前tab的URL并调用统一的AI总结加载函数
     chrome.tabs.get(activeInfo.tabId, function (tab) {
       if (tab && tab.url) {
-        // 首先尝试从storage加载AI总结
-        const summaryType = document.querySelector(
-          'input[name="summary-type"]:checked'
-        ).value;
-        const summaryData = loadAISummary(tab.url, summaryType);
-
-        if (summaryData) {
-          displayCachedAISummary(summaryData);
-          switchTab("ai");
-        } else {
-          // 如果storage中没有，再从数据库加载summarizer
-          getNews(tab.url)
-            .then((newsData) => {
-              console.log("Tab切换时获取的新闻数据:", newsData);
-              // 尝试显示summarizer数据
-              if (displayNewsSummarizer(newsData)) {
-                // 如果成功显示了summarizer数据，切换到AI tab
-                switchTab("ai");
-              }
-            })
-            .catch((error) => {
-              console.error("获取新闻数据失败:", error);
-            });
-        }
+        console.log("[DEBUG-AI] Tab切换时URL:", tab.url);
+        // 使用统一的AI总结加载函数
+        loadAndDisplayAISummary(tab.url, "Tab切换");
       }
     });
   });
 
   // 监听当前tab的URL变化（例如在同一个tab内导航到不同页面）
   chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    console.log("[DEBUG-AI] chrome.tabs.onUpdated 被调用，tabId:", tabId, "changeInfo:", changeInfo, "tab.active:", tab.active);
+    
     // 如果URL发生变化且是当前活动标签页，立即清空面板内容
     if (changeInfo.url && tab.active) {
-      console.log("[DEBUG] 检测到URL变化，立即清空面板内容");
+      console.log("[DEBUG-AI] 检测到URL变化，立即清空面板内容");
       clearPanelData();
     }
 
     //立即刷新数据
     refreshDataForNewTab();
 
-    // 获取当前URL并调用getNews函数
+    // 获取当前URL并调用统一的AI总结加载函数
     if (tab.url) {
-      // 首先尝试从storage加载AI总结
-      const summaryType = document.querySelector(
-        'input[name="summary-type"]:checked'
-      ).value;
-      const summaryData = loadAISummary(tab.url, summaryType);
-
-      if (summaryData) {
-        displayCachedAISummary(summaryData);
-        switchTab("ai");
-      } else {
-        // 如果storage中没有，再从数据库加载summarizer
-        getNews(tab.url)
-          .then((newsData) => {
-            console.log("URL更新时获取的新闻数据:", newsData);
-            // 尝试显示summarizer数据
-            if (displayNewsSummarizer(newsData)) {
-              // 如果成功显示了summarizer数据，切换到AI tab
-              switchTab("ai");
-            }
-          })
-          .catch((error) => {
-            console.error("获取新闻数据失败:", error);
-          });
-      }
+      console.log("[DEBUG-AI] URL更新时处理URL:", tab.url);
+      // 使用统一的AI总结加载函数
+      loadAndDisplayAISummary(tab.url, "URL更新");
     }
   });
 
@@ -1437,11 +1418,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 获取当前标签页URL并加载AI总结
   function loadAISummaryForCurrentTab() {
+    console.log("[DEBUG-AI] loadAISummaryForCurrentTab() 开始执行");
+    
+    // 检查是否正在加载AI总结，防止竞态条件
+    if (isLoadingAISummary) {
+      console.log("[DEBUG-AI] 正在加载AI总结，跳过此次请求");
+      return;
+    }
+    
+    // 设置加载状态标志
+    isLoadingAISummary = true;
+    
     // 检查当前所在的tab
     const currentActiveTab = document.querySelector(".tab.active");
     const currentTabName = currentActiveTab
       ? currentActiveTab.getAttribute("data-tab")
       : "unknown";
+    
+    console.log("[DEBUG-AI] 当前活动tab:", currentTabName);
 
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs && tabs[0]) {
@@ -1467,13 +1461,17 @@ document.addEventListener("DOMContentLoaded", function () {
           // 如果存在AI总结，自动切换到AI tab
           switchTab("ai");
         } else {
+          console.log("[DEBUG-AI] storage中没有对应类型的总结数据，尝试从数据库加载");
           // 如果storage中没有对应类型的总结数据，尝试从数据库加载summarizer
           getNews(url)
             .then((newsData) => {
+              console.log("[DEBUG-AI] 数据库查询完成，结果:", newsData);
               if (displayNewsSummarizer(newsData)) {
+                console.log("[DEBUG-AI] 成功显示数据库summarizer数据，切换到AI tab");
                 // 如果成功从数据库显示了summarizer数据，切换到AI tab
                 switchTab("ai");
               } else {
+                console.log("[DEBUG-AI] 数据库中也没有summarizer数据，隐藏AI总结区域");
                 // 如果数据库中也没有summarizer数据，隐藏AI总结结果区域
                 document.getElementById("ai-status-section").style.display =
                   "none";
@@ -1500,7 +1498,7 @@ document.addEventListener("DOMContentLoaded", function () {
               }
             })
             .catch((error) => {
-              console.error("从数据库获取新闻数据失败:", error);
+              console.error("[DEBUG-AI] 从数据库获取新闻数据失败:", error);
               // 如果获取数据库数据失败，也隐藏AI总结结果区域
               document.getElementById("ai-status-section").style.display =
                 "none";
@@ -1548,7 +1546,88 @@ document.addEventListener("DOMContentLoaded", function () {
           switchTab("ai");
         }
       }
+      
+      // 无论成功与否，都要重置加载状态标志
+      isLoadingAISummary = false;
     });
+  }
+
+  // 统一的AI总结加载函数，避免重复逻辑
+  async function loadAndDisplayAISummary(url, source = "unknown") {
+    console.log(`[DEBUG-AI] loadAndDisplayAISummary() 被调用，来源: ${source}, URL: ${url}`);
+    
+    // 检查是否正在加载AI总结，防止竞态条件
+    if (isLoadingAISummary) {
+      console.log("[DEBUG-AI] 正在加载AI总结，跳过此次请求");
+      return;
+    }
+    
+    // 设置加载状态标志
+    isLoadingAISummary = true;
+    
+    try {
+      // 获取当前选中的总结类型
+      const summaryType = document.querySelector(
+        'input[name="summary-type"]:checked'
+      ).value;
+      
+      // 首先尝试从storage加载AI总结
+      const summaryData = loadAISummary(url, summaryType);
+      
+      if (summaryData) {
+        console.log(`[DEBUG-AI] 从${source}的storage中找到总结数据`);
+        displayCachedAISummary(summaryData);
+        switchTab("ai");
+      } else {
+        console.log(`[DEBUG-AI] 从${source}的storage中没有数据，尝试从数据库加载`);
+        // 如果storage中没有，再从数据库加载summarizer
+        const newsData = await getNews(url);
+        
+        if (displayNewsSummarizer(newsData)) {
+          console.log(`[DEBUG-AI] 从${source}的数据库中成功显示summarizer数据`);
+          switchTab("ai");
+        } else {
+          console.log(`[DEBUG-AI] 从${source}的数据库中也没有summarizer数据`);
+          // 如果数据库中也没有summarizer数据，隐藏AI总结结果区域
+          document.getElementById("ai-status-section").style.display = "none";
+          document.getElementById("ai-summary-result").innerHTML = `
+          <div style="text-align: center; color: #666; padding: 3px;">
+            点击"AI总结"按钮开始生成网页内容总结
+          </div>
+        `;
+          // 隐藏整个AI总结内容区域
+          const aiSummarySection = document.querySelector(
+            "#ai-tab .section:nth-child(2)"
+          );
+          if (aiSummarySection) {
+            aiSummarySection.style.display = "none";
+          }
+          // 隐藏清除缓存按钮
+          document.getElementById("clear-cache-btn").style.display = "none";
+        }
+      }
+    } catch (error) {
+      console.error(`[DEBUG-AI] 从${source}加载AI总结时出错:`, error);
+      // 如果获取数据失败，也隐藏AI总结结果区域
+      document.getElementById("ai-status-section").style.display = "none";
+      document.getElementById("ai-summary-result").innerHTML = `
+      <div style="text-align: center; color: #666; padding: 3px;">
+        点击"AI总结"按钮开始生成网页内容总结
+      </div>
+    `;
+      // 隐藏整个AI总结内容区域
+      const aiSummarySection = document.querySelector(
+        "#ai-tab .section:nth-child(2)"
+      );
+      if (aiSummarySection) {
+        aiSummarySection.style.display = "none";
+      }
+      // 隐藏清除缓存按钮
+      document.getElementById("clear-cache-btn").style.display = "none";
+    } finally {
+      // 无论成功与否，都要重置加载状态标志
+      isLoadingAISummary = false;
+    }
   }
 
   // 清除当前URL的AI总结缓存
@@ -1660,33 +1739,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // 获取当前URL的新闻数据
           if (currentTab.url) {
-            // 首先尝试从storage加载AI总结
-            const summaryType = document.querySelector(
-              'input[name="summary-type"]:checked'
-            ).value;
-            const summaryData = loadAISummary(currentTab.url, summaryType);
-
-            if (summaryData) {
-              displayCachedAISummary(summaryData);
-              switchTab("ai");
-            } else {
-              // 如果storage中没有，再从数据库加载summarizer
-              getNews(currentTab.url)
-                .then((newsData) => {
-                  console.log(
-                    "refreshDataForNewTab中获取的新闻数据:",
-                    newsData
-                  );
-                  // 尝试显示summarizer数据
-                  if (displayNewsSummarizer(newsData)) {
-                    // 如果成功显示了summarizer数据，切换到AI tab
-                    switchTab("ai");
-                  }
-                })
-                .catch((error) => {
-                  console.error("获取新闻数据失败:", error);
-                });
-            }
+            // 使用统一的AI总结加载函数
+            loadAndDisplayAISummary(currentTab.url, "refreshDataForNewTab");
           }
 
           // 页面数据加载完成后，启用AI总结按钮并恢复原始文本
@@ -1747,7 +1801,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 执行数据提取和相关操作
   function proceedWithDataExtraction() {
-    console.log("[DEBUG] 开始执行数据提取");
+    console.log("[DEBUG-AI] proceedWithDataExtraction() 开始执行");
 
     // 提取新页面的数据
     extractData();
@@ -1758,33 +1812,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // 获取当前URL的新闻数据
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (tabs && tabs[0] && tabs[0].url) {
-        // 首先尝试从storage加载AI总结
-        const summaryType = document.querySelector(
-          'input[name="summary-type"]:checked'
-        ).value;
-        const summaryData = loadAISummary(tabs[0].url, summaryType);
-
-        if (summaryData) {
-          displayCachedAISummary(summaryData);
-          switchTab("ai");
-        } else {
-          // 如果storage中没有，再从数据库加载summarizer
-          getNews(tabs[0].url)
-            .then((newsData) => {
-              console.log(
-                "proceedWithDataExtraction中获取的新闻数据:",
-                newsData
-              );
-              // 尝试显示summarizer数据
-              if (displayNewsSummarizer(newsData)) {
-                // 如果成功显示了summarizer数据，切换到AI tab
-                switchTab("ai");
-              }
-            })
-            .catch((error) => {
-              console.error("获取新闻数据失败:", error);
-            });
-        }
+        console.log("[DEBUG-AI] proceedWithDataExtraction中处理URL:", tabs[0].url);
+        // 使用统一的AI总结加载函数
+        loadAndDisplayAISummary(tabs[0].url, "proceedWithDataExtraction");
       }
     });
 
